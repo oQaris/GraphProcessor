@@ -2,16 +2,13 @@ import org.jetbrains.kotlin.gradle.plugin.KaptExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.10"
-    kotlin("kapt") version "1.5.10"
+    kotlin("jvm") version "1.5.30"
+    kotlin("kapt") version "1.5.30"
     application
 }
 
 group = "me.oqaris"
 version = "0.2.0"
-
-val appName = "gp"
-val mainClass = "console.MainKt"
 
 repositories {
     mavenCentral()
@@ -23,7 +20,7 @@ dependencies {
     kapt("info.picocli:picocli-codegen:4.6.1")
 
     implementation("net.objecthunter:exp4j:0.4.8")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.50")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.30")
     implementation("org.jetbrains.kotlin:kotlin-runtime:1.2.71")
     implementation("org.slf4j:slf4j-simple:1.7.28")
     implementation(kotlin("stdlib-jdk8"))
