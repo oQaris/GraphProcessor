@@ -1,12 +1,17 @@
+import org.jetbrains.kotlin.gradle.plugin.KaptExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.5.10"
+    kotlin("kapt") version "1.5.10"
     application
 }
 
 group = "me.oqaris"
 version = "0.2.0"
+
+val appName = "gp"
+val mainClass = "console.MainKt"
 
 repositories {
     mavenCentral()
@@ -14,16 +19,55 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("info.picocli:picocli:4.6.1")
+    kapt("info.picocli:picocli-codegen:4.6.1")
+
+    implementation("net.objecthunter:exp4j:0.4.8")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.50")
+    implementation("org.jetbrains.kotlin:kotlin-runtime:1.2.71")
+    implementation("org.slf4j:slf4j-simple:1.7.28")
+    implementation(kotlin("stdlib-jdk8"))
+}
+
+fun Project.kapt(setup: KaptExtension.() -> Unit) = the<KaptExtension>().setup()
+
+kapt {
+    useBuildCache = false
+    arguments {
+        arg("project", "${project.group}/${project.name}")
+    }
+}
+
+tasks.withType<Jar> {
+    // Otherwise, you'll get a "No main manifest attribute" error
+    manifest {
+        attributes["Main-Class"] = "console.MainKt"
+    }
+
+    // To add all the dependencies
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile>() {
+tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-application {
-    mainClass.set("MainKt")
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }
