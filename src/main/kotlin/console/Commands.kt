@@ -12,69 +12,96 @@ import kotlin.math.roundToInt
 
 @Command(
     name = "gp",
-    version = ["GP 0.2.0"],
+    version = ["GP 0.2.1"],
     subcommands = [New::class, Show::class, Remove::class, Connectivity::class, Planarity::class,
         Isomorphism::class, Path::class, MaxFlow::class, ECycle::class, HCycle::class, Redo::class, HelpCommand::class],
-    description = ["sdofigjsdopifgj"],
+    description = ["A lightweight CLI-utility that can work with several graphs " +
+            "(weighted, directed, multi-graphs are supported), find Hamiltonian and Euler cycles and chains, " +
+            "build a search tree, find shortest paths and return the vertex and edge k-connectivity of a graph, " +
+            "determine planarity, graph isomorphism and much more! (See https://github.com/oQaris/GraphProcessor)"],
     mixinStandardHelpOptions = true
 )
 class BaseCommand
 
 val gfs = SetFileGraph(File("GraphData"))
 
-class GraphConverter : ITypeConverter<Graph> {
+internal class GraphConverter : ITypeConverter<Graph> {
     override fun convert(value: String) =
-        gfs[value] ?: throw TypeConversionException("Не найден граф с именем $value")
+        gfs[value] ?: throw TypeConversionException("No graph named \"$value\" was found.")
 }
 
+internal class GraphCandidates : ArrayList<String>(gfs.names)
+
 open class GraphParameter {
-    @Parameters(index = "0", description = [DESCRIPTION_GRAPH], converter = [GraphConverter::class])
+    @Parameters(
+        index = "0", description = [DESCRIPTION_GRAPH],
+        converter = [GraphConverter::class],
+        completionCandidates = GraphCandidates::class
+    )
     lateinit var graph: Graph
 }
 
-// -------------- Конкретные команды -------------- //
+// -------------- Specific commands -------------- //
 
 @Command(
     name = "new",
-    description = ["Создать и сохранить граф"]
+    description = ["Create and save a graph."]
 )
 class New : Runnable {
     override fun run() {
         gfs.add(GPInterface.newGraph())
+        gfs.writeAllToFile()
     }
 }
 
 @Command(
     name = "show",
-    description = ["Вывести сохранённый граф"]
+    description = ["Print one or more saved graphs."]
 )
 class Show : Runnable {
-    @Option(names = ["-a", "--all"], description = ["Вывести все сохранённые графы"])
-    var isAll: Boolean = false
+
+    class Exclusive {
+        @Parameters(
+            arity = "1..*",
+            description = [DESCRIPTION_GRAPH],
+            converter = [GraphConverter::class],
+            completionCandidates = GraphCandidates::class
+        )
+        lateinit var graphs: Array<Graph>
+
+        @Option(names = ["-a", "--all"], description = ["Вывести все сохранённые графы"])
+        var isAll: Boolean = false
+
+        @Option(names = ["-n", "--names"], description = ["Вывести только названия всех сохранённых графов"])
+        var isOnlyNames: Boolean = false
+    }
+
+    @ArgGroup(exclusive = true, multiplicity = "1")
+    lateinit var exclusive: Exclusive
 
     override fun run() {
-        if (isAll)
+        if (exclusive.isOnlyNames)
             println(gfs.names.joinToString("\n"))
-        else println("Тут будет полный вывод")
+        else if (exclusive.isAll)
+            println("Тут будет полный вывод")
+        else println(exclusive.graphs.joinToString())
     }
 }
 
 @Command(
     name = "remove",
-    description = ["Удалить граф"]
+    description = ["Delete graph."]
 )
 class Remove : GraphParameter(), Runnable {
     override fun run() {
-        if (gfs.remove(graph.name) != null) {
-            println("Граф успешно удалён")
-            gfs.writeAllToFile()
-        } else println("Графа с данным именем не существует")
+        gfs.remove(graph.name)
+        gfs.writeAllToFile()
     }
 }
 
 @Command(
     name = "connectivity",
-    description = ["Вычислить вершинную и рёберную k-связность"]
+    description = ["Compute vertex and edge k-connectivity."]
 )
 class Connectivity : GraphParameter(), Runnable {
     override fun run() {
@@ -82,32 +109,30 @@ class Connectivity : GraphParameter(), Runnable {
         val ec = edgeConnectivity(graph)
         if (vc != 0 && ec != 0)
             println(
-                "Граф $vc" +
-                        if (ec != vc)
-                            ("-вершинно-связен и $ec-рёберно-связен")
-                        else
-                            "-связен"
+                "Graph $vc" +
+                        if (ec != vc) ("-vertex-connected and $ec-edge-connected")
+                        else "-connected"
             )
-        else println("Граф не является связным")
+        else println("The graph is not connected.")
     }
 }
 
 @Command(
     name = "planarity",
-    description = ["Проверить граф на планарность"]
+    description = ["Check the graph for planarity."]
 )
 class Planarity : GraphParameter(), Runnable {
     override fun run() {
         if (planarity(graph))
-            println("Граф планарен")
+            println("The graph is planar.")
         else
-            println("Граф не планарен")
+            println("The graph is not planar.")
     }
 }
 
 @Command(
     name = "isomorphism",
-    description = ["Проверить два графа на изоморфизм"]
+    description = ["Check two graphs for isomorphism."]
 )
 class Isomorphism : Runnable {
     @Parameters(description = [DESCRIPTION_GRAPH], converter = [GraphConverter::class])
@@ -118,14 +143,14 @@ class Isomorphism : Runnable {
 
     override fun run() {
         if (isomorphism(firstGraph, secondGraph))
-            println("Графы изоморфны")
-        else println("Графы не изоморфны")
+            println("Graphs are isomorphic.")
+        else println("Graphs are not isomorphic.")
     }
 }
 
 @Command(
     name = "path",
-    description = ["Найти кратчайший путь между заданными вершинами"]
+    description = ["Find the shortest path between the given vertices."]
 )
 class Path : GraphParameter(), Runnable {
     @Parameters(description = [DESCRIPTION_VERTEX])
@@ -141,7 +166,7 @@ class Path : GraphParameter(), Runnable {
 
 @Command(
     name = "maxflow",
-    description = ["Найти максимальный поток из первой вершины во вторую"]
+    description = ["Find the maximum flow from the first vertex to the second."]
 )
 class MaxFlow : GraphParameter(), Runnable {
     @Parameters(description = [DESCRIPTION_VERTEX])
@@ -156,14 +181,14 @@ class MaxFlow : GraphParameter(), Runnable {
 }
 
 @Command(
-    name = "ecycle",
-    description = ["Найти Эйлеров цикл/цепь в графе"]
+    name = "euler",
+    description = ["Find Euler cycle/chain in the graph."]
 )
 class ECycle : GraphParameter(), Runnable {
-    @Option(names = ["-c", "--chain"], description = ["Цепь"])
+    @Option(names = ["-c", "--chain"], description = ["does not work"])
     var chain: Int = 0
 
-    @Option(names = ["-m", "--multistart"], description = ["Цепь"])
+    @Option(names = ["-m", "--multistart"], description = ["does not work"])
     var multistart: Boolean = false
 
     override fun run() {
@@ -172,12 +197,12 @@ class ECycle : GraphParameter(), Runnable {
 }
 
 @Command(
-    name = "hcycle",
-    description = ["Найти Гамильтонов цикл/цепь в графе"]
+    name = "hamilton",
+    description = ["Find a Hamiltonian cycle/chain in the graph."]
 )
 class HCycle : GraphParameter(), Runnable {
 
-    @Option(names = ["-t", "--tree"], description = [DESCRIPTION_WEIGHT])
+    @Option(names = ["-t", "--tree"], description = ["Turns on tree output during search."])
     var tree: Boolean = false
 
     override fun run() {
@@ -187,12 +212,12 @@ class HCycle : GraphParameter(), Runnable {
 
 @Command(
     name = "redo",
-    description = ["Изменить или добавить веса. Не создаёт новые рёбра/дуги"]
+    description = ["Change or add weights. Doesn't create new edges."]
 )
 class Redo : GraphParameter(), Runnable {
     @Option(
         names = ["-r", "--rounding-enable"],
-        description = ["Включает округление до целого числа, если в результате вычисления выражения получилось дробное число"]
+        description = ["Turns on rounding to an integer if the expression evaluates to a fraction."]
     )
     var isRoundingEnable: Boolean = false
 
@@ -219,7 +244,7 @@ private fun printPath(g: Graph, u: Int, v: Int) {
     g.checkCorrectVer(u, v)
     val path = route(g, u, v)
     if (path.isEmpty())
-        println("Вершина $v не достижима из $u")
+        println("The vertex $v is not reachable from $u.")
     else
         println(path.joinToString(" "))
 }
@@ -228,10 +253,10 @@ private fun printMaxFlow(g: Graph, u: Int, v: Int) {
     g.checkCorrectVer(u, v)
     val maxFlow = maxFlow(g, u, v)
     if (maxFlow.value == 0)
-        print("Вершина $v не достижима из $u")
+        print("The vertex $v is not reachable from $u.")
     else {
-        println("Величина максимального потока из $u в $v:  ${maxFlow.value}")
-        println("Список увеличивающих путей:")
+        println("The value of the maximum flow from $u to $v:  ${maxFlow.value}")
+        println("List of augmentation paths:")
         for (path in maxFlow.flow) {
             print("(${path.value})  ")
             println(path.path.joinToString(" -> "))
@@ -241,7 +266,7 @@ private fun printMaxFlow(g: Graph, u: Int, v: Int) {
 
 private fun printHCycle(g: Graph, tree: Boolean) {
     if (vertexConnectivity(g) < 2) {
-        println("В данном графе не существует Гамильтонового цикла")
+        println("There is no Hamiltonian cycle in this graph.")
         return
     }
     try {
@@ -252,7 +277,7 @@ private fun printHCycle(g: Graph, tree: Boolean) {
 }
 
 private fun printHChain(g: Graph, start: Int, tree: Boolean) {
-    require(start >= 0 && start < g.numVer) { "Некорректный ввод вершины для старта" }
+    require(start >= 0 && start < g.numVer) { "Incorrect entry of the vertex for the start." }
     if (start == 0) {
         // Мультистарт
         var cc = 0
@@ -262,7 +287,7 @@ private fun printHChain(g: Graph, start: Int, tree: Boolean) {
         } catch (e: IllegalArgumentException) {
             cc++
         }
-        if (cc == g.numVer) println("Граф не содержит Гамильтоновой цепи!")
+        if (cc == g.numVer) println("The graph does not contain a Hamiltonian chain.")
         else println(
             hamiltonCycle(g, cc + 1, false, tree)
         )
@@ -270,13 +295,13 @@ private fun printHChain(g: Graph, start: Int, tree: Boolean) {
         try {
             println(hamiltonCycle(g, start, false, tree))
         } catch (e: IllegalArgumentException) {
-            println("Граф не содержит Гамильтоновой цепи от заданной вершины!")
+            println("The graph does not contain a Hamiltonian chain from a given vertex.")
         }
 }
 
 private fun printECycle(g: Graph) {
     if (vertexConnectivity(g) < 2) {
-        println("В данном графе не существует Эйлерова цикла!")
+        println("There is no Euler cycle in this graph.")
         return
     }
     var numEvenVer = 0
@@ -286,7 +311,7 @@ private fun printECycle(g: Graph) {
             g,
             1
         )
-    ) else println("В данном графе не существует Эйлерова цикла!")
+    ) else println("There is no Euler cycle in this graph.")
 }
 
 private fun printEChain(g: Graph, start: Int) {
@@ -294,7 +319,7 @@ private fun printEChain(g: Graph, start: Int) {
     var oddVer = 0
     for (i in g.numVer - 1 downTo 0) if (g.deg(i) % 2 === 0) numEvenVer++ else oddVer = i
     if (g.numVer - numEvenVer === 2) {
-        println("Существует Эйлерова цепь:")
+        println("There is an Euler chain:")
         if (start == 0) println(
             eulerCycle(
                 g,
@@ -305,6 +330,6 @@ private fun printEChain(g: Graph, start: Int) {
                 g,
                 start
             )
-        ) else println("В данном графе нет Эйлеровой цепи от заданной вершины!")
-    } else println("В данном графе не существует Эйлеровой цепи!")
+        ) else println("There is no Euler chain from the given vertex in this graph.")
+    } else println("There is no Euler chain in this graph.")
 }

@@ -36,8 +36,8 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
             return sumEdg
         }
 
-    private val ERR_SIZE_EM = "Матрица смежности графа не должна быть пустой!"
-    private val ERR_SIZE_SQ = "Матрица смежности графа должна быть квадратной!"
+    private val ERR_SIZE_EM = "The adjacency matrix of a graph must not be empty."
+    private val ERR_SIZE_SQ = "The adjacency matrix of the graph must be square."
 
     //todo избавиться от дублирования кода как то
     private fun <T> checkSize(srcData: List<List<T>>) {
@@ -96,7 +96,7 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     }
 
     override fun addVer(count: Int) {
-        require(count >= 0) { "Число добавляемых вершин должно быть неотрицательным!" }
+        require(count >= 0) { "The number of vertices added must be non-negative." }
         val n = data.size + count
         val dataCpy = Array(n) { arrayOfNulls<Int?>(n) }
         for (i in data.indices)

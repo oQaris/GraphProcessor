@@ -30,12 +30,12 @@ fun hamiltonCycle(g: Graph, start: Int, cycle: Boolean, tree: Boolean): List<Int
 
     var block = g.numVer - 1    // Счётчик для разблокировки 1-й вершины
     var back = false            // Если мы вернулись назад
-    if (tree) println("Дерево поиска:\n►$start")
+    if (tree) println("Search tree:\n►$start")
 
     while (!pass.all { it }) {
         require(hc.isNotEmpty()) {
-            "Граф не содержит Гамильтонов" +
-                    if (cycle) "а цикла!" else "ой цепи от заданной вершины!"
+            "The graph does not contain a Hamiltonian " +
+                    if (cycle) "cycle." else "chain from a given vertex."
         }
         // Получаем массив допустимых для движения вершин
         com = g.comWith(hc.last(), pass)

@@ -9,7 +9,7 @@ data class FlowResult(val value: Int, val flow: List<AugmentingPath>)
 fun <A, B> Pair<A, B>.inv() = second to first
 
 fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
-    require(start != end) { "Вершины должны быть различны!" }
+    require(start != end) { "The vertices must be different." }
     var b = 0                           // Величина потока
     val flow = AdjacencyMatrixGraph(g)  // Поток
     val copy = AdjacencyMatrixGraph(g)  // Остаточная сеть

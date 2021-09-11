@@ -1,7 +1,8 @@
 package console
 
-const val DESCRIPTION_GRAPH = "Название существующего и сохранённого в файле графа"
+const val DESCRIPTION_GRAPH = "The name of the saved graph."
 const val DESCRIPTION_VERTEX =
-    "Номер вершины в указанном графе, не может быть меньше 0 или превышать общее количество вершин"
+    "The number of a vertex in the specified graph cannot be less than 0 or exceed the total number of vertices."
 const val DESCRIPTION_WEIGHT =
-    "Новый вес всех вершин. Является константой, либо выражением (без пробелов). Можно использовать спецсимволы - U (номер начальной вершины), V (номер конечной вершины) и W (текущий вес вершины)"
+    "The new weight of all vertices. It is either a constant or an expression (no spaces). " +
+            "You can use special characters - 'U' (starting vertex number), 'V' (ending vertex number) and 'W' (current vertex weight)."
