@@ -16,14 +16,14 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+
     implementation("info.picocli:picocli:4.6.1")
+    implementation("info.picocli:picocli-jansi-graalvm:1.2.0")
+    implementation("org.fusesource.jansi:jansi:1.18")
     kapt("info.picocli:picocli-codegen:4.6.1")
 
-    implementation("net.objecthunter:exp4j:0.4.8")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.30")
-    implementation("org.jetbrains.kotlin:kotlin-runtime:1.2.71")
+    implementation("com.udojava:EvalEx:2.6")
     implementation("org.slf4j:slf4j-simple:1.7.28")
-    implementation(kotlin("stdlib-jdk8"))
 }
 
 fun Project.kapt(setup: KaptExtension.() -> Unit) = the<KaptExtension>().setup()
