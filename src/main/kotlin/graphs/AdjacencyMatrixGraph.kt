@@ -36,28 +36,42 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
             return sumEdg
         }
 
-    private fun checkSize(srcData: List<List<Any?>>) {
-        require(srcData.isNotEmpty() && srcData.size == srcData[0].size) { "Матрица смежности графа должна быть квадратной!" }
+    private val ERR_SIZE_EM = "Матрица смежности графа не должна быть пустой!"
+    private val ERR_SIZE_SQ = "Матрица смежности графа должна быть квадратной!"
+
+    //todo избавиться от дублирования кода как то
+    private fun <T> checkSize(srcData: List<List<T>>) {
+        require(srcData.isNotEmpty()) { ERR_SIZE_EM }
+        srcData.forEach {
+            require(srcData.size == it.size) { ERR_SIZE_SQ }
+        }
     }
 
-    constructor(name: String, srcData: Array<Array<Int?>>) : this(name) {
-        //checkSize(srcData)
-        require(srcData.isNotEmpty() && srcData.size == srcData[0].size) { "Матрица смежности графа должна быть квадратной!" }
-        data = cloneArray(srcData)
+    private fun <T> checkSize(srcData: Array<Array<T>>) {
+        require(srcData.isNotEmpty()) { ERR_SIZE_EM }
+        srcData.forEach {
+            require(srcData.size == it.size) { ERR_SIZE_SQ }
+        }
+    }
+
+    constructor(name: String, srcData: Array<Array<Int?>>, unsafe: Boolean = false) : this(name) {
+        data = if (unsafe) srcData
+        else {
+            checkSize(srcData)
+            cloneArray(srcData)
+        }
         oriented = checkOriented()
     }
 
     constructor(name: String, srcData: List<List<Int?>>) : this(name) {
-        //checkSize(srcData)
-        require(srcData.isNotEmpty() && srcData.size == srcData[0].size) { "Матрица смежности графа должна быть квадратной!" }
+        checkSize(srcData)
         data = Array(srcData.size) { arrayOfNulls<Int?>(srcData.size) }
         for (i in data.indices) for (j in data.indices) data[i][j] = srcData[i][j]
         oriented = checkOriented()
     }
 
     constructor(name: String, srcData: Array<Array<Boolean>>) : this(name) {
-        //checkSize(srcData)
-        require(srcData.isNotEmpty() && srcData.size == srcData[0].size) { "Матрица смежности графа должна быть квадратной!" }
+        checkSize(srcData)
         data = Array(srcData.size) { arrayOfNulls<Int?>(srcData.size) }
         for (i in data.indices) for (j in data.indices) if (srcData[i][j]) data[i][j] = 1
         oriented = checkOriented()

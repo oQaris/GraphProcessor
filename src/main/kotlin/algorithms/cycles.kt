@@ -19,7 +19,6 @@ private fun Graph.comWith(ver: Int, pass: BooleanArray) = com(ver).filter { !pas
  * @param tree  Флаг печати дерева поиска
  * @return Список вершин, содержащих Гамильтонов цикл или цепь
  */
-@OptIn(ExperimentalStdlibApi::class)
 fun hamiltonCycle(g: Graph, start: Int, cycle: Boolean, tree: Boolean): List<Int> {
     val pass = BooleanArray(g.numVer)       // Массив пройденных вершин
     pass[start] = true

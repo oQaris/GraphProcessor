@@ -139,12 +139,7 @@ interface Graph {
      * @throws GraphException При некорректных значениях номеров вершин ver1 или ver2
      */
     fun isCom(u: Int, v: Int): Boolean {
-        return try {
-            getWeightEdg(u, v)
-            true
-        } catch (e: GraphException) {
-            false
-        }
+        return getWeightEdg(u, v) != null
     }
 
     /**
