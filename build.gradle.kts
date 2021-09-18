@@ -35,6 +35,11 @@ kapt {
     }
 }
 
+/*task("execute", JavaExec::class) {
+    main = "com.lapots.breed.Application"
+    classpath = sourceSets["main"].runtimeClasspath
+}*/
+
 tasks.withType<Jar> {
     // Otherwise, you'll get a "No main manifest attribute" error
     manifest {

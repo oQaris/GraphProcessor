@@ -1,7 +1,7 @@
 package storage
 
-import algorithms.edgeConnectivity
-import algorithms.vertexConnectivity
+import algorithm.edgeConnectivity
+import algorithm.vertexConnectivity
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 
