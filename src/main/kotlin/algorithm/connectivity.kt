@@ -132,38 +132,38 @@ class Record {
  * @param localConnectivity Функция определения связности (по умолчанию - рёберная связность).
  * @return Подграф заданной связности с минимальным числом рёбер.
  */
-@OptIn(ExperimentalStdlibApi::class)
 fun findSpanningKConnectedSubgraph(
     g: Graph,
     k: Int,
     localConnectivity: ((Graph, Int, Int) -> Int) = ::localEdgeConnectivity,
     isLogging: Boolean = false,
     valRecord: Record = Record()
-)
-        : Pair<Graph, Long> {
+): Pair<Graph, Long> {
+
     require(k > 0)
-    val conn = connectivity(g, localConnectivity)
-    require(conn >= k) { "Граф должен иметь связность >= k" }
+    require(connectivity(g, localConnectivity) >= k) { "Граф должен иметь связность >= $k" }
     val log = Logger(isLogging)
+    var rec = g.numEdg
+    valRecord.value = rec
+    var minG = g
+    var id = 0L
+    val startTime = System.currentTimeMillis()
+    var timeRec = startTime
 
     val leaves = TreeSet(Comparator
         .comparing(Subgraph::score)
         .reversed()
         .thenComparing { sub -> sub.rawEdges.size }
         .thenComparing { sub -> sub.graph.name })
-    leaves.add(Subgraph(g, g.getEdges().sortEdges(g), k).apply { log.i("Оценка исходного графа $score") })
-    var rec = g.numEdg
-    valRecord.value = rec
-    var minG = g
-    var id = 0L
-    var timeRec = System.currentTimeMillis()
+
+    leaves.add(Subgraph(g, g.getEdges().sortEdges(g), k)
+        .apply { log.i("Оценка исходного графа $score") })
 
     try {
         while (leaves.isNotEmpty()) {
             val curElem = leaves.pollFirst()!!
 
-            val minGrade = curElem.score
-            if (minGrade >= rec)
+            if (curElem.score >= rec)
                 break
 
             val (curG, curEdges) = curElem
@@ -185,27 +185,25 @@ fun findSpanningKConnectedSubgraph(
                 //log.i("Оценка получившегося графа ${nm.score}")
 
                 if (numEdges < rec) {
-                    valRecord.value = numEdges
                     rec = numEdges
-                    minG = newG
+                    valRecord.value = rec
                     log.i("Теперь рекорд $rec")
+                    minG = newG
                     timeRec = System.currentTimeMillis()
                     leaves.removeIf { it.score >= rec }
                 }
-                if (nm.score < rec)
-                    if (!leaves.add(nm))
-                        throw IllegalArgumentException()
+                if (nm.score < rec && !leaves.add(nm))
+                    throw IllegalArgumentException("Что то пошло не так 1.")
             }
             curElem.updateScore()
-            if (curElem.score < rec)
-                if (!leaves.add(curElem.apply {
-                        graph.name = id++.toString()
-                    })) throw IllegalArgumentException()
+            if (curElem.score < rec && !leaves.add(curElem
+                    .apply { graph.name = id++.toString() })
+            ) throw IllegalArgumentException("Что то пошло не так 2.")
         }
     } catch (e: OutOfMemoryError) {
         log.i("Всего графов: ${leaves.size}")
     }
-    return minG.apply { name = "rec=$rec" } to System.currentTimeMillis() - timeRec
+    return minG.apply { name = "rec=$rec" } to startTime - timeRec
 }
 
 fun List<Pair<Int, Int>>.sortEdges(g: Graph) = LinkedList(
