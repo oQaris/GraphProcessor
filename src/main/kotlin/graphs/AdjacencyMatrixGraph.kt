@@ -16,7 +16,7 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
                         val dJI = if (data[j][i] == null) Int.MIN_VALUE else data[i][j]
                         if (dIJ!! > dJI!!) data[j][i] = dIJ else data[i][j] = dJI
                     }
-            field = oriented
+            field = value
         }
     private lateinit var data: Array<Array<Int?>>
 
@@ -52,6 +52,12 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         srcData.forEach {
             require(srcData.size == it.size) { ERR_SIZE_SQ }
         }
+    }
+
+    constructor(name: String, size: Int) : this(name) {
+        require(size > 0) { ERR_SIZE_SQ }
+        data = Array(size) { arrayOfNulls(size) }
+        oriented = false
     }
 
     constructor(name: String, srcData: Array<Array<Int?>>, unsafe: Boolean = false) : this(name) {
@@ -179,7 +185,7 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         sb.append(name).append(": ").append(size)
         sb.append("\n")
         for (i in 0 until size) {
-            for (j in 0 until size) sb.append(if (isCom(i, j)) getWeightEdg(i, j) else "0").append(", ")
+            for (j in 0 until size) sb.append(if (isCom(i, j)) getWeightEdg(i, j) else "-").append(", ")
             sb.append("\n")
         }
         return sb.toString()
