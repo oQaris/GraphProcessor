@@ -30,20 +30,19 @@ interface Graph {
     fun addVer(count: Int)
 
     /**
-     * Добавить указанное количество вершин в граф
+     * Добавить ребро в граф, либо заменить вес существующего
      *
      * @param u Начальная вершина добавляемого ребра
      * @param v Конечная вершина добавляемого ребра
-     * @throws GraphException Если число вершин меньше 1
+     * @param weight Вес добавляемого ребра (1 по-умолчанию)
      */
     fun addEdg(u: Int, v: Int, weight: Int = 1)
 
     /**
-     * Добавить указанное количество вершин в граф
+     * Добавить ребро в граф, либо заменить вес существующего
      *
      * @param edge Пара вершин, из которых состоит добавляемое ребро
      * @param weight Вес добавляемого ребра (1 по-умолчанию)
-     * @throws GraphException Если число вершин меньше 1
      */
     fun addEdg(edge: Pair<Int, Int>, weight: Int = 1) = addEdg(edge.first, edge.second, weight)
 
@@ -65,7 +64,7 @@ interface Graph {
     fun getWeightEdg(edge: Pair<Int, Int>) = getWeightEdg(edge.first, edge.second)
 
     /**
-     * Получить вес ребра UV
+     * Установить вес ребра UV
      *
      * @param u Номер начальной вершины
      * @param v Номер конечной вершины
@@ -79,18 +78,18 @@ interface Graph {
     }
 
     /**
-     * Получить вес ребра
+     * Установить вес ребра
      *
      * @param edge Пара смежных вершин
      * @param weight Вес добавляемого ребра
-     * @throws GraphException При отсутствии ребра UV
+     * @throws GraphException При отсутствии ребра edge
      */
     fun setWeightEdg(edge: Pair<Int, Int>, weight: Int) = setWeightEdg(edge.first, edge.second, weight)
 
     /**
      * Полностью удаляет вершину и инцидентные ей рёбра из графа
      *
-     * @param ver Вершина, удяляемая из графа
+     * @param ver Вершина, удаляемая из графа
      * @throws GraphException При некорректном значении номера вершины ver
      */
     fun remVer(ver: Int)
@@ -108,7 +107,7 @@ interface Graph {
      * Удаляет ребро из графа
      *
      * @param edge Пара вершин, из которых состоит удаляемое ребро
-     * @throws GraphException При некорректных значениях номеров вершин u или v
+     * @throws GraphException При отсутствии ребра edge
      */
     fun remEdg(edge: Pair<Int, Int>) = remEdg(edge.first, edge.second)
 
@@ -116,7 +115,7 @@ interface Graph {
      * Узнать степень входа/выхода заданной вершины
      *
      * @param ver   Номер вершины, для которой вычисляется её степень
-     * @param isOut Какую степень считать? (isOut=true: deg-, isOut=false: deg+)
+     * @param isOut Определяет степень входа/выхода (isOut=true: deg-, isOut=false: deg+)
      * @throws GraphException При некорректном значении номера вершины ver
      */
     fun deg(ver: Int, isOut: Boolean): Int

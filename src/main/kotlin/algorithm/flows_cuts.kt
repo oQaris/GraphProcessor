@@ -28,16 +28,20 @@ fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
             // Если в исходном графе нет дуги, по которой проходит увеличивающий путь,
             // то уменьшаем вес симметричной дуги на сигму, если есть - увеличиваем прямую дугу
             if (flow.isCom(it))
-                flow.setWeightEdg(it, flow.getWeightEdg(it) ?: 0 + delta)
-            else flow.setWeightEdg(it.inv(), flow.getWeightEdg(it.inv()) ?: 0 - delta)
+                flow.addEdg(it, (flow.getWeightEdg(it) ?: 0) + delta)
+            else flow.addEdg(it.inv(), (flow.getWeightEdg(it.inv()) ?: 0) - delta)
             // Пересчитываем веса
             val reverseFlow = flow.getWeightEdg(it.inv()) ?: 0
             val newWeightUV = (copy.getWeightEdg(it) ?: 0) - delta + reverseFlow
             val newWeightVU = (copy.getWeightEdg(it.inv()) ?: 0) + delta - reverseFlow
             // Устанавливаем новые веса,
             // если вес обратился в 0 - удаляем дугу
-            if (newWeightUV == 0) copy.remEdg(it) else copy.setWeightEdg(it, newWeightUV)
-            if (newWeightVU == 0) copy.remEdg(it.inv()) else copy.setWeightEdg(it.inv(), newWeightVU)
+            if (newWeightUV == 0)
+                copy.remEdg(it)
+            else copy.addEdg(it, newWeightUV)
+            if (newWeightVU == 0)
+                copy.remEdg(it.inv())
+            else copy.addEdg(it.inv(), newWeightVU)
         }
         out.add(AugmentingPath(delta, path)) // формируем объект со списком и величиной увеличивающего пути
         path = route(copy, start, end) // находим новый увеличивающий путь

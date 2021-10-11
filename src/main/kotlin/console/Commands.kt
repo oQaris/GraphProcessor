@@ -1,7 +1,6 @@
 package console
 
-import algorithm.isomorphism
-import algorithm.planarity
+import algorithm.*
 import graphs.Graph
 import picocli.CommandLine.*
 import storage.SetFileGraph
@@ -10,19 +9,19 @@ import java.io.File
 @Command(
     name = "gp",
     version = ["GP 0.2.1"],
-    subcommands = [New::class, Show::class, Remove::class, Connectivity::class, Planarity::class, Isomorphism::class,
-        Path::class, MaxFlow::class, ECycle::class, HCycle::class, Redo::class],
+    subcommands = [GPNew::class, GPShow::class, GPRemove::class, GPConnectivity::class, GPPlanarity::class, GPIsomorphism::class,
+        GPPath::class, GPMaxFlow::class, GPECycle::class, GPHCycle::class, GPRedo::class],
     description = ["A lightweight CLI-utility that can work with several graphs " +
             "(weighted, directed, multi-graphs are supported), find Hamiltonian and Euler cycles and chains, " +
             "build a search tree, find shortest paths and return the vertex and edge k-connectivity of a graph, " +
             "determine planarity, graph isomorphism and much more! (See https://github.com/oQaris/GraphProcessor)"],
     mixinStandardHelpOptions = true
 )
-private class BaseCommand
+class BaseCommand
 
 private val gfs = SetFileGraph(File("GraphData"))
 
-private open class GraphParameter {
+open class GraphParameter {
     class GraphConverter : ITypeConverter<Graph> {
         override fun convert(value: String) =
             gfs[value] ?: throw TypeConversionException("No graph named \"$value\" was found.")
@@ -54,7 +53,7 @@ private open class ArrayGraphParameter {
     name = "new",
     description = ["Create and save a graph."]
 )
-private class New : Runnable {
+class GPNew : Runnable {
     override fun run() {
         gfs.add(GPInterface.newGraph())
         gfs.writeAllToFile()
@@ -65,19 +64,19 @@ private class New : Runnable {
     name = "show",
     description = ["Print one or more saved graphs."]
 )
-private class Show : Runnable {
+class GPShow : Runnable {
 
     private class Exclusive : ArrayGraphParameter() {
 
         @Option(names = ["-a", "--all"], description = ["Display all saved graphs."])
-        var isAll: Boolean = false
+        var isAll = false
 
         @Option(names = ["-n", "--names"], description = ["Display only the names of all saved graphs."])
-        var isOnlyNames: Boolean = false
+        var isOnlyNames = false
     }
 
     @ArgGroup(exclusive = true, multiplicity = "1")
-    lateinit var exclusive: Exclusive
+    private lateinit var exclusive: Exclusive
 
     override fun run() {
         if (exclusive.isOnlyNames)
@@ -92,7 +91,7 @@ private class Show : Runnable {
     name = "remove",
     description = ["Delete graph."]
 )
-private class Remove : GraphParameter(), Runnable {
+class GPRemove : GraphParameter(), Runnable {
     override fun run() {
         gfs.remove(graph.name)
         gfs.writeAllToFile()
@@ -103,24 +102,24 @@ private class Remove : GraphParameter(), Runnable {
     name = "connectivity",
     description = ["Compute vertex and edge k-connectivity."]
 )
-private class Connectivity : GraphParameter(), Runnable {
+class GPConnectivity : GraphParameter(), Runnable {
 
     private class Exclusive {
         @Option(
             names = ["-v", "--vertex-connectivity"],
             description = ["Calculates the vertex connectivity of a graph."]
         )
-        var isVertexConn: Boolean = false
+        var isVertexConn = false
 
         @Option(
             names = ["-e", "--edge-connectivity"],
             description = ["Calculates the edge connectivity of a graph."]
         )
-        var isEdgeConn: Boolean = false
+        var isEdgeConn = false
     }
 
     @ArgGroup(exclusive = true)
-    lateinit var exclusive: Exclusive
+    private lateinit var exclusive: Exclusive
 
     override fun run() {
         connectivity(graph, exclusive.isVertexConn, exclusive.isEdgeConn)
@@ -128,10 +127,51 @@ private class Connectivity : GraphParameter(), Runnable {
 }
 
 @Command(
+    name = "connectivity",
+    description = ["Compute vertex and edge k-connectivity."]
+)
+class GPSubgraph : GraphParameter(), Runnable {
+
+    private class Exclusive {
+        @Option(
+            names = ["-v", "--vertex-connectivity"],
+            description = ["Defines the vertex connectivity of the subgraph."]
+        )
+        var vertexConn = -1
+
+        @Option(
+            names = ["-e", "--edge-connectivity"],
+            description = ["Defines the edge connectivity of the subgraph."]
+        )
+        var edgeConn = -1
+    }
+
+    @Option(
+        names = ["-l", "--logging"],
+        // negatable = true,
+        description = ["Turns on the output to the console of each stage of the algorithm."]
+    )
+    var isLog = false
+
+    @ArgGroup(exclusive = true)
+    private lateinit var exclusive: Exclusive
+
+    override fun run() {
+        val res =
+            if (exclusive.edgeConn != -1)
+                findSpanningKConnectedSubgraph(graph, exclusive.edgeConn, ::localEdgeConnectivity, isLog)
+            else
+                findSpanningKConnectedSubgraph(graph, exclusive.vertexConn, ::localVertexConnectivity, isLog)
+        println("Time: " + res.second)
+        println(res.first)
+    }
+}
+
+@Command(
     name = "planarity",
     description = ["Check the graph for planarity."]
 )
-private class Planarity : GraphParameter(), Runnable {
+class GPPlanarity : GraphParameter(), Runnable {
     override fun run() {
         if (planarity(graph))
             println("The graph is planar.")
@@ -144,7 +184,7 @@ private class Planarity : GraphParameter(), Runnable {
     name = "isomorphism",
     description = ["Check two graphs for isomorphism."]
 )
-private class Isomorphism : Runnable {
+class GPIsomorphism : Runnable {
     @Parameters(description = [DESCRIPTION_GRAPH], converter = [GraphParameter.GraphConverter::class])
     lateinit var firstGraph: Graph
 
@@ -162,12 +202,12 @@ private class Isomorphism : Runnable {
     name = "path",
     description = ["Find the shortest path between the given vertices."]
 )
-private class Path : GraphParameter(), Runnable {
+class GPPath : GraphParameter(), Runnable {
     @Parameters(description = [DESCRIPTION_VERTEX])
-    var firstVertex: Int = -1
+    var firstVertex = -1
 
     @Parameters(description = [DESCRIPTION_VERTEX])
-    var secondVertex: Int = -1
+    var secondVertex = -1
 
     override fun run() {
         printPath(graph, firstVertex, secondVertex)
@@ -178,12 +218,12 @@ private class Path : GraphParameter(), Runnable {
     name = "maxflow",
     description = ["Find the maximum flow from the first vertex to the second."]
 )
-private class MaxFlow : GraphParameter(), Runnable {
+class GPMaxFlow : GraphParameter(), Runnable {
     @Parameters(description = [DESCRIPTION_VERTEX])
-    var firstVertex: Int = -1
+    var firstVertex = -1
 
     @Parameters(description = [DESCRIPTION_VERTEX])
-    var secondVertex: Int = -1
+    var secondVertex = -1
 
     override fun run() {
         printMaxFlow(graph, firstVertex, secondVertex)
@@ -194,12 +234,12 @@ private class MaxFlow : GraphParameter(), Runnable {
     name = "euler",
     description = ["Find Euler cycle/chain in the graph."]
 )
-private class ECycle : GraphParameter(), Runnable {
+class GPECycle : GraphParameter(), Runnable {
     @Option(names = ["-c", "--chain"], description = ["does not work"])
-    var chain: Int = 0
+    var chain = 0
 
     @Option(names = ["-m", "--multistart"], description = ["does not work"])
-    var multistart: Boolean = false
+    var multistart = false
 
     override fun run() {
         printECycle(graph)
@@ -210,10 +250,10 @@ private class ECycle : GraphParameter(), Runnable {
     name = "hamilton",
     description = ["Find a Hamiltonian cycle/chain in the graph."]
 )
-private class HCycle : GraphParameter(), Runnable {
+class GPHCycle : GraphParameter(), Runnable {
 
     @Option(names = ["-t", "--tree"], description = ["Turns on tree output during search."])
-    var tree: Boolean = false
+    var tree = false
 
     override fun run() {
         printHCycle(graph, tree)
@@ -224,12 +264,12 @@ private class HCycle : GraphParameter(), Runnable {
     name = "redo",
     description = ["Change or add weights. Doesn't create new edges."]
 )
-private class Redo : GraphParameter(), Runnable {
+class GPRedo : GraphParameter(), Runnable {
     @Option(
         names = ["-r", "--rounding-enable"],
         description = ["Turns on rounding to an integer if the expression evaluates to a fraction."]
     )
-    var isRoundingEnable: Boolean = false
+    var isRoundingEnable = false
 
     @Parameters(
         description = ["The new weight of all vertices. " +
