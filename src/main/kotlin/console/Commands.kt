@@ -56,7 +56,7 @@ private open class ArrayGraphParameter {
 class GPNew : Runnable {
     override fun run() {
         gfs.add(GPInterface.newGraph())
-        gfs.writeAllToFile()
+        gfs.push()
     }
 }
 
@@ -94,7 +94,7 @@ class GPShow : Runnable {
 class GPRemove : GraphParameter(), Runnable {
     override fun run() {
         gfs.remove(graph.name)
-        gfs.writeAllToFile()
+        gfs.push()
     }
 }
 
@@ -283,6 +283,6 @@ class GPRedo : GraphParameter(), Runnable {
 
     override fun run() {
         redo(graph, expression, isRoundingEnable)
-        gfs.writeAllToFile()
+        gfs.push()
     }
 }
