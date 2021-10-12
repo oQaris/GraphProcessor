@@ -1,8 +1,7 @@
 package console
 
 import graphs.AdjacencyMatrixGraph
-import storage.SetFileGraph.Companion.isNewName
-import java.util.*
+import java.util.regex.Pattern
 
 /**
  * Класс включает в себя пользовательский интерфейс
@@ -11,25 +10,35 @@ import java.util.*
  * Функции, помеченные префиксом "_" возвращают введённое значение
  */
 object GPInterface {
-    const val maxTypeIn = 3
-    private var input = Scanner(System.`in`)
-    private fun inputInt(inf: Int, sup: Int): Int {
-        var buf = if (input.hasNextInt()) input.nextInt() else inf - 1
-        while (buf < inf || buf > sup) {
-            println("Invalid input, please try again.")
-            buf = if (input.hasNextInt()) input.nextInt() else inf - 1
+    private val NAME_PATTERN = Pattern.compile("""^[_A-z0-9]*((\s)*[_A-z0-9])*${'$'}""")
+    private const val MAX_TYPE_IN = 3
+
+    private fun inputInt(inf: Int = Int.MIN_VALUE, sup: Int = Int.MAX_VALUE): Int {
+        while (true) {
+            try {
+                val num = readLine()!!.trim().toInt()
+                if (num in inf..sup)
+                    return num
+                println("The number must be between $inf and $sup.")
+            } catch (e: NumberFormatException) {
+                println("Invalid input, please try again.")
+            }
         }
-        return buf
     }
 
+    private fun readString() = generateSequence { System.`in`.read().toChar() }
+        .dropWhile { it.isWhitespace() }.takeWhile { !it.isWhitespace() }.joinToString("")
+
     private fun inputName(): String {
-        var name = if (input.hasNext()) input.next() else "new"
-        while (isNewName(name)) {
+        while (true) {
+            val str = readLine()!!.trim()
+            if (isValidName(str))
+                return str
             println("Invalid input, please try again.")
-            name = if (input.hasNext()) input.next() else "new"
         }
-        return name
     }
+
+    private fun isValidName(str: String) = NAME_PATTERN.matcher(str).matches()
 
     fun newGraph(): AdjacencyMatrixGraph {
         /*Тип*/
@@ -47,7 +56,7 @@ object GPInterface {
                     "3 - Adjacency matrix\n" +
                     "Incident Matrix and Edge List still in development"
         )
-        val typeIn = inputInt(1, maxTypeIn)
+        val typeIn = inputInt(1, MAX_TYPE_IN)
         /*Имя*/
         print("Enter the name of the graph:\t")
         val name = inputName()
@@ -58,7 +67,7 @@ object GPInterface {
     }
 
     private fun newGraph(name: String, numVer: Int, weight: Boolean, typeIn: Int): AdjacencyMatrixGraph {
-        require(!(typeIn < 1 || typeIn > maxTypeIn || numVer < 1 || isNewName(name))) { "Invalid parameters." }
+        require(typeIn in 1..MAX_TYPE_IN && numVer > 0 && isValidName(name)) { "Invalid parameters." }
         val g = Array(numVer) { arrayOfNulls<Int>(numVer) }
         when (typeIn) {
             1 -> if (weight) entryOrgraphW(g) else entryOrgraph(g)
@@ -104,7 +113,7 @@ object GPInterface {
             while (true) {
                 val buf = inputInt(0, g.size)
                 if (buf != 0) {
-                    val w = inputInt(Int.MIN_VALUE, Int.MAX_VALUE)
+                    val w = inputInt()
                     g[i][buf - 1] = w
                     g[buf - 1][i] = w
                 } else break
@@ -129,7 +138,7 @@ object GPInterface {
             printOldVer(g, i)
             while (true) {
                 val buf = inputInt(0, g.size)
-                if (buf != 0) g[i][buf - 1] = inputInt(Int.MIN_VALUE, Int.MAX_VALUE) else break
+                if (buf != 0) g[i][buf - 1] = inputInt() else break
             }
         }
     }
@@ -138,57 +147,12 @@ object GPInterface {
         println("Введите саму матрицу смежности.\nДля обозначения несмежных вершин введите не число (обычно '-')")
         for (i in g.indices) {
             for (j in g.indices) {
-                g[i][j] = if (input.hasNextInt()) input.nextInt() else null
-            }
-        }
-    }
-
-    // Прочие методы, используемые в Main'e
-    fun inputParam(param: Array<String>) {
-        input = Scanner(System.`in`)
-        Arrays.fill(param, "")
-        val strArr = input.nextLine().split(" ").toTypedArray()
-        for (word in strArr) {
-            if (word != "") {
-                for (i in param.indices) if (param[i] == "") {
-                    param[i] = word.lowercase(Locale.getDefault())
-                    break
+                g[i][j] = try {
+                    readLine()!!.trim().toInt()
+                } catch (e: NumberFormatException) {
+                    null
                 }
             }
         }
-    }
-
-    fun _chain(): Boolean {
-        println("Попробовать найти Гамильтонову цепь?\t0 - нет, 1 - да")
-        var buf = input.nextInt()
-        while (buf != 0 && buf != 1) {
-            println("Неверный ввод, повторите попытку")
-            input.nextLine()
-            buf = input.nextInt()
-        }
-        return buf == 1
-    }
-
-    fun _multistart(n: Int): Int {
-        println("Использовать мультистарт или ввести начальную веришну?")
-        println("0 - мультистарт, 1-$n - выбрать вершину с указанным номером для старта")
-        var buf = input.nextInt()
-        while (buf < 0 || buf > n) {
-            println("Неверный ввод, повторите попытку")
-            input.nextLine()
-            buf = input.nextInt()
-        }
-        return buf
-    }
-
-    fun _tree(): Boolean {
-        println("Нарисовать дерево поиска?\t0 - нет, 1 - да")
-        var buf = input.nextInt()
-        while (buf != 0 && buf != 1) {
-            println("Неверный ввод, повторите попытку")
-            input.nextLine()
-            buf = input.nextInt()
-        }
-        return buf == 1
     }
 }
