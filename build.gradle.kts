@@ -23,7 +23,10 @@ dependencies {
     kapt("info.picocli:picocli-codegen:4.6.1")
 
     implementation("com.udojava:EvalEx:2.6")
-    implementation("org.slf4j:slf4j-simple:1.7.28")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
+    implementation("org.slf4j:slf4j-api:1.7.32")
+    implementation("ch.qos.logback:logback-classic:1.2.6")
+
 }
 
 fun Project.kapt(setup: KaptExtension.() -> Unit) = the<KaptExtension>().setup()
@@ -35,18 +38,11 @@ kapt {
     }
 }
 
-/*task("execute", JavaExec::class) {
-    main = "com.lapots.breed.Application"
-    classpath = sourceSets["main"].runtimeClasspath
-}*/
-
 tasks.withType<Jar> {
-    // Otherwise, you'll get a "No main manifest attribute" error
     manifest {
         attributes["Main-Class"] = "console.MainKt"
     }
 
-    // To add all the dependencies
     from(sourceSets.main.get().output)
 
     dependsOn(configurations.runtimeClasspath)
