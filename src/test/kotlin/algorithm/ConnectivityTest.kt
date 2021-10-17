@@ -1,10 +1,9 @@
 package algorithm
 
-import graphs.Graph
 import mu.KotlinLogging
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.SetFileGraph
-import storage.genConnectedGraph
 import storage.genGraphWithGC
 import java.io.Closeable
 import java.io.File
@@ -18,7 +17,7 @@ internal class ConnectivityTest {
 
     fun <T : Closeable, R> T.useWith(block: T.() -> R): R = use { with(it, block) }
 
-    val NUM_EX = 10
+    private val NUM_EX = 10
 
     @Test
     fun p2Test() {
@@ -28,7 +27,7 @@ internal class ConnectivityTest {
             for (i in 1..10) {
                 val graph = genGraphWithGC(n, p.toFloat() / 10)
                 val res = findSpanningKConnectedSubgraph(graph, 2)
-                print(res.timestamps.get().last())
+                print(res.second.second)
                 print(";")
             }
             p += 1
@@ -52,12 +51,11 @@ internal class ConnectivityTest {
                 try {
                     val res = future[1, TimeUnit.MINUTES]
 
-                    val ts = res.timestamps.get().takeLast(3)
-                    rp += ts[0]
-                    r += ts[1]
-                    all += ts[2]
+                    rp += res.second.first.first
+                    r += res.second.first.second
+                    all += res.second.second
 
-                    assertEquals(n, res.answer.numEdg)
+                    assertEquals(n, res.first.numEdg)
                     count--
 
                 } catch (e: TimeoutException) {
@@ -70,64 +68,14 @@ internal class ConnectivityTest {
     }
 
     @Test
-    fun rnTest() {
-        val graph = genGraphWithGC(NUM_EX + 1, 1f)
-        for (k in (1..NUM_EX)) {
-            logger.info { "k = $k" }
-            val res = findSpanningKConnectedSubgraph(graph, k)
-            val ts = res.timestamps.get().takeLast(4).toMutableList()
-            while (ts.size != 4)
-                ts.add(ts[0])
-            println("${ts[0]};${ts[1]};${ts[3]}")
-        }
-    }
-
-    @Test
-    fun recTest() {
-        val n = 20
-        val graphs = Array(6) { genGraphWithGC(n, 0.6f) }
-        val res = graphs.map { findSpanningKConnectedSubgraph(it, 2) }
-            .map { it.timestamps.get() }
-        for (i in 0 until res.maxOf { it.size }) {
-            println("$i;" + res.map { if (i < it.size) it[i] else 0 }.joinToString(";"))
-        }
-    }
-
-    @Test
-    fun veTest() {
-        val n = 20
-        var i = 1
-        fun megaFun(graphs: Array<Graph>, k: Int) {
-            fun List<Result>.uxxx() = this.map { it.timestamps.get().takeLast(3) }
-                .reduceRight { list, acc ->
-                    acc.zip(list).map { it.first + it.second }.map { it / list.size }
-                }
-
-            val resE = graphs
-                .map { findSpanningKConnectedSubgraph(it, k, localConnectivity = ::localEdgeConnectivity) }.uxxx()
-            val resV = graphs
-                .map { findSpanningKConnectedSubgraph(it, k, localConnectivity = ::localVertexConnectivity) }.uxxx()
-
-            println("$i;${resE[0]};${resE[2]};${resV[0]};${resV[2]}")
-            i++
-        }
-        for (p in 1..10) {
-            for (k in 1 until n) {
-                val graphs = Array(10) { genConnectedGraph(n, p.toFloat() / 10, k) }
-                megaFun(graphs, k)
-            }
-        }
-    }
-
-    @Test
     fun connected3Test() {
         val sfg = SetFileGraph()
-        val res = findSpanningKConnectedSubgraph(sfg["big"]!!, 2)
-        println(res.answer)
-        println(res.answer.numEdg)
+        val res = findSpanningKConnectedSubgraph(sfg["mega"]!!, 3)
+        println(res.first)
     }
 
     @Test
+    @Disabled
     fun ggg() {
         val list = File("C:/Users/oQaris/Desktop/ggg.txt").bufferedReader().use { it.readLines() }
         val shift = 23
@@ -140,6 +88,7 @@ internal class ConnectivityTest {
     }
 
     @Test
+    @Disabled
     fun ggg2() {
         File("C:/Users/oQaris/Desktop/ggg.txt").bufferedReader().use { it.readLines() }
             .filter { it.contains(";") }
