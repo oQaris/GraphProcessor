@@ -2,12 +2,13 @@ package algorithm
 
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
-import storage.Logger
+import mu.KotlinLogging
 import java.lang.Integer.max
 import java.util.*
 import kotlin.math.ceil
 import kotlin.properties.Delegates
 
+private val logger = KotlinLogging.logger {}
 
 /**
  * Нахождение вершинной связности путём поиска минимальной локальной вершинной связности между каждой парой вершин в графе.
@@ -103,20 +104,27 @@ data class Subgraph(
      * @param removedEdge Удалённое ребро. Если не null, то будут рассматриваться только рёбра, инцидентные его концам.
      */
     fun updateScore(removedEdge: Pair<Int, Int>? = null) {
-        if (removedEdge != null) {
-            val (u, v) = removedEdge
-            graph.com(u).map { it to u }
-                .plus(graph.com(v).map { it to v })
-                .forEach { (s, t) ->
-                    if (graph.deg(s) == k || graph.deg(t) == k)
-                        rawEdges.remove(s to t)
-                }
-        }
+        if (removedEdge != null)
+            remRawEdges(removedEdge)
+        else graph.getEdges().forEach { remRawEdges(it) }
+
         score = max(
             if (k == 1) graph.numVer - 1
             else ceil(k * graph.numVer / 2.0).toInt(),
             graph.numEdg - rawEdges.size
         )
+    }
+
+    private fun remRawEdges(removedEdge: Pair<Int, Int>) {
+        val (u, v) = removedEdge
+        graph.com(u).map { it to u }
+            .plus(graph.com(v).map { it to v })
+            .forEach { (s, t) ->
+                if (graph.deg(s) <= k || graph.deg(t) <= k) {
+                    rawEdges.remove(s to t)
+                    rawEdges.remove(t to s)
+                }
+            }
     }
 }
 
@@ -136,28 +144,28 @@ fun findSpanningKConnectedSubgraph(
     g: Graph,
     k: Int,
     localConnectivity: ((Graph, Int, Int) -> Int) = ::localEdgeConnectivity,
-    isLogging: Boolean = false,
     valRecord: Record = Record()
-): Pair<Graph, Long> {
+): Pair<Graph, Pair<Pair<Long, Long>, Long>> {
 
     require(k > 0)
     require(connectivity(g, localConnectivity) >= k) { "Граф должен иметь связность >= $k" }
-    val log = Logger(isLogging)
     var rec = g.numEdg
     valRecord.value = rec
     var minG = g
     var id = 0L
     val startTime = System.currentTimeMillis()
     var timeRec = startTime
+    var prevTimeRec = startTime
+    var prevPrevTimeRec = startTime
 
     val leaves = TreeSet(Comparator
         .comparing(Subgraph::score)
-        .reversed()
+        //.reversed() //если раскомментировать, то будут в начале графы с максимальной оценкой
         .thenComparing { sub -> sub.rawEdges.size }
         .thenComparing { sub -> sub.graph.name })
 
-    leaves.add(Subgraph(g, g.getEdges().sortEdges(g), k)
-        .apply { log.i("Оценка исходного графа $score") })
+    leaves.add(Subgraph(g, g.getEdges().sortEdges(g), k).apply { updateScore() }
+        .apply { logger.debug { "Оценка исходного графа $score" } })
 
     try {
         while (leaves.isNotEmpty()) {
@@ -180,15 +188,17 @@ fun findSpanningKConnectedSubgraph(
                 }
                 val numEdges = newG.numEdg
 
-                //log.i("Удалили ребро $edge у графа в котором последнее удаляли ${curElem.removedEdge} и нефиксированные рёбра: ${curElem.rawEdges}")
+                logger.debug { "Удалили ребро $edge у графа ${newG.name}. Нефиксированные рёбра: ${curElem.rawEdges}" }
                 val nm = Subgraph(newG, curEdges.sortEdges(newG), k).apply { updateScore(edge) }
-                //log.i("Оценка получившегося графа ${nm.score}")
+                logger.debug { "Оценка получившегося графа ${nm.score}" }
 
                 if (numEdges < rec) {
                     rec = numEdges
                     valRecord.value = rec
-                    log.i("Теперь рекорд $rec")
+                    logger.debug { "Теперь рекорд $rec" }
                     minG = newG
+                    prevPrevTimeRec = prevTimeRec
+                    prevTimeRec = timeRec
                     timeRec = System.currentTimeMillis()
                     leaves.removeIf { it.score >= rec }
                 }
@@ -201,9 +211,13 @@ fun findSpanningKConnectedSubgraph(
             ) throw IllegalArgumentException("Что то пошло не так 2.")
         }
     } catch (e: OutOfMemoryError) {
-        log.i("Всего графов: ${leaves.size}")
+        logger.error(e) { "Всего графов: ${leaves.size}" }
     }
-    return minG.apply { name = "rec=$rec" } to startTime - timeRec
+    logger.info { "Рекорд: $rec" }
+    logger.info { "Исходный граф: $g" }
+    logger.info { "Получившийся граф: $minG" }
+    return minG to ((prevPrevTimeRec - startTime to prevTimeRec - startTime)
+            to System.currentTimeMillis() - startTime)
 }
 
 fun List<Pair<Int, Int>>.sortEdges(g: Graph) = LinkedList(
