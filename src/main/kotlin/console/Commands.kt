@@ -146,6 +146,7 @@ class GPSubgraph : GraphParameter(), Runnable {
         var edgeConn = -1
     }
 
+    //todo вынести
     @Option(
         names = ["-l", "--logging"],
         // negatable = true,
@@ -159,9 +160,9 @@ class GPSubgraph : GraphParameter(), Runnable {
     override fun run() {
         val res =
             if (exclusive.edgeConn != -1)
-                findSpanningKConnectedSubgraph(graph, exclusive.edgeConn, ::localEdgeConnectivity, isLog)
+                findSpanningKConnectedSubgraph(graph, exclusive.edgeConn, ::localEdgeConnectivity)
             else
-                findSpanningKConnectedSubgraph(graph, exclusive.vertexConn, ::localVertexConnectivity, isLog)
+                findSpanningKConnectedSubgraph(graph, exclusive.vertexConn, ::localVertexConnectivity)
         println("Time: " + res.second)
         println(res.first)
     }

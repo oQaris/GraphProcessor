@@ -36,9 +36,6 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
             return sumEdg
         }
 
-    private val ERR_SIZE_EM = "The adjacency matrix of a graph must not be empty."
-    private val ERR_SIZE_SQ = "The adjacency matrix of the graph must be square."
-
     //todo избавиться от дублирования кода как то
     private fun <T> checkSize(srcData: List<List<T>>) {
         require(srcData.isNotEmpty()) { ERR_SIZE_EM }
@@ -185,7 +182,7 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         sb.append(name).append(": ").append(size)
         sb.append("\n")
         for (i in 0 until size) {
-            for (j in 0 until size) sb.append(if (isCom(i, j)) getWeightEdg(i, j) else "-").append(", ")
+            for (j in 0 until size) sb.append(if (isCom(i, j)) getWeightEdg(i, j) else "-").append(" ")
             sb.append("\n")
         }
         return sb.toString()
@@ -206,6 +203,9 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     }
 
     companion object {
+        val ERR_SIZE_EM = "The adjacency matrix of a graph must not be empty."
+        val ERR_SIZE_SQ = "The adjacency matrix of the graph must be square."
+
         private fun cloneArray(src: Array<Array<Int?>>): Array<Array<Int?>> {
             val target = Array<Array<Int?>>(src.size) { arrayOfNulls(src[0].size) }
             for (i in src.indices)
