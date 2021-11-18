@@ -163,8 +163,8 @@ class GPSubgraph : GraphParameter(), Runnable {
                 findSpanningKConnectedSubgraph(graph, exclusive.edgeConn, ::localEdgeConnectivity)
             else
                 findSpanningKConnectedSubgraph(graph, exclusive.vertexConn, ::localVertexConnectivity)
-        println("Time: " + res.second)
-        println(res.first)
+        println("Time: " + res.timestamps)
+        println(res.answer)
     }
 }
 

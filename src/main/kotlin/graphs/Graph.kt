@@ -87,6 +87,11 @@ interface Graph {
     fun setWeightEdg(edge: Pair<Int, Int>, weight: Int) = setWeightEdg(edge.first, edge.second, weight)
 
     /**
+     * Получить сумму весов всех рёбер в графе (должна использовать кэширование и выполняться быстро)
+     */
+    fun sumWeights(): Int
+
+    /**
      * Полностью удаляет вершину и инцидентные ей рёбра из графа
      *
      * @param ver Вершина, удаляемая из графа
@@ -173,7 +178,9 @@ interface Graph {
     fun getPairVer(): MutableList<Pair<Int, Int>> {
         val n = numVer
         val out = ArrayList<Pair<Int, Int>>(n * n - n)
-        for (i in 0 until n) for (j in (if (oriented) 0 else i + 1) until n) if (i != j) out.add(i to j)
+        for (i in 0 until n)
+            for (j in (if (oriented) 0 else i + 1) until n)
+                if (i != j) out.add(i to j)
         return out
     }
 
