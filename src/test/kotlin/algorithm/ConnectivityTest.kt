@@ -145,4 +145,12 @@ internal class ConnectivityTest {
             .filter { it.contains(";") }
             .forEach { println(it) }
     }
+
+    @Test
+    fun correctTest() {
+        val sfg = SetFileGraph()
+        val res = findSpanningKConnectedSubgraph(sfg["mega"]!!, 2)
+        println(res.answer)
+        println(res.answer.numEdg)
+    }
 }

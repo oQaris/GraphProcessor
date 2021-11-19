@@ -25,30 +25,12 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         get() = data.size
 
     override var numEdg: Int = 0
-        get() {
-            /*var sumEdg = 0
-            for (i in data.indices)
-                for (j in 0 until i) {
-                    if (data[i][j] != null)
-                        sumEdg++
-                    if (oriented && data[j][i] != null)
-                        sumEdg++
-                }
-            return sumEdg*/
 
-            return getPairVer().count { (i, j) ->
-                data[i][j] != null
-            }
-        }
-
-    object Cash {
-        var numEdg: Int = 0
-        var sumWeights: Int = 0
-    }
+    override var sumWeights: Int = 0
 
     private fun initCashes() {
-        Cash.numEdg = getPairVer().count { (i, j) -> data[i][j] != null }
-        Cash.sumWeights = getEdges().sumOf { (i, j) -> data[i][j]!! }
+        numEdg = getPairVer().count { (i, j) -> data[i][j] != null }
+        sumWeights = getEdges().sumOf { (i, j) -> data[i][j]!! }
     }
 
     //todo избавиться от дублирования кода как то
@@ -119,8 +101,6 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         return data[u][v]
     }
 
-    override fun sumWeights() = 0
-
     override fun addVer(count: Int) {
         require(count >= 0) { "The number of vertices added must be non-negative." }
         val n = data.size + count
@@ -133,8 +113,8 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     override fun addEdg(u: Int, v: Int, weight: Int) {
         checkCorrectVer(u, v)
 
-        if (data[u][v] == null) Cash.numEdg++
-        else Cash.sumWeights += data[u][v]!! - weight
+        if (data[u][v] == null) numEdg++
+        else sumWeights += data[u][v]!! - weight
 
         data[u][v] = weight
         if (!oriented) data[v][u] = weight
@@ -201,8 +181,8 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         checkCorrectVer(u, v)
 
         if (data[u][v] != null) {
-            Cash.numEdg++
-            Cash.sumWeights -= data[u][v]!!
+            numEdg++
+            sumWeights -= data[u][v]!!
         }
 
         if (oriented) data[u][v] = null
