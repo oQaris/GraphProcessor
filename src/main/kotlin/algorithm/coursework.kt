@@ -66,11 +66,14 @@ class Subgraph(
  * `sortEdges` - для задания порядка сохранения рёбер в графе (т.е. удаляются с конца)
  */
 interface Strategy {
-    fun evaluate(sub: Subgraph): Int
-    fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph): MutableList<Pair<Int, Int>>
+    fun record(graph: Graph): Int
+    fun evaluate(sub: Subgraph) = Int.MIN_VALUE
+    fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) = edges.toMutableList()
 }
 
 private class UnweightedStrategy : Strategy {
+    override fun record(graph: Graph) = graph.numEdg
+
     override fun evaluate(sub: Subgraph) = max(
         if (sub.k == 1) sub.graph.numVer - 1
         else ceil(sub.k * sub.graph.numVer / 2.0).toInt(),
@@ -78,20 +81,29 @@ private class UnweightedStrategy : Strategy {
     )
 
     override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
-        edges.sortedWith(Comparator
-            .comparing<Pair<Int, Int>, Int> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+        edges.sortedWith(
+            Comparator
+                .comparing<Pair<Int, Int>, Int> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .thenComparing { (u, v) -> graph.deg(u) + graph.deg(v) }).toMutableList()
 }
 
-/*private class WeightedStrategy : Strategy {
-    override fun evaluate(sub: Subgraph): Int {
-        //TODO: Реализовать
-    }
+private class WeightedStrategy : Strategy {
+    override fun record(graph: Graph) = graph.sumWeights
 
-    override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph): MutableList<Pair<Int, Int>> {
-        //TODO: Реализовать
-    }
-}*/
+    /*override fun evaluate(sub: Subgraph): Int {
+        return sub.graph.sumWeights
+    }*/
+
+    override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
+        edges.sortedWith(Comparator
+            .comparing<Pair<Int, Int>, Int> { graph.getWeightEdg(it) }
+            .thenComparing { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+            .thenComparing { (u, v) -> graph.deg(u) + graph.deg(v) }).toMutableList()
+}
+
+private class GGStrategy : Strategy {
+    override fun record(graph: Graph) = graph.numEdg
+}
 
 /**
  * Нахождение k-связного остовного подграфа с наименьшим числом ребер.
@@ -110,7 +122,7 @@ fun findSpanningKConnectedSubgraph(
 
     require(k > 0)
     require(connectivity(g, localConnectivity) >= k) { "The graph must have connectivity >= $k" }
-    var rec = g.numEdg
+    var rec = strategy.record(g)
     var minG = g
     var id = 0L
     val timestamps = Timestamps()
@@ -121,7 +133,7 @@ fun findSpanningKConnectedSubgraph(
         .thenComparing { sub -> sub.rawEdges.size }
         .thenComparing { sub -> sub.graph.name })
 
-    leaves.add(Subgraph(g, g.getEdges().sortEdges(g), k, strategy)
+    leaves.add(Subgraph(g, strategy.sortEdges(g.getEdges(), g), k, strategy)
         .apply { logger.debug { "Оценка исходного графа $score" } })
 
     try {
@@ -143,15 +155,15 @@ fun findSpanningKConnectedSubgraph(
                     remEdg(edge)
                     name = id++.toString()
                 }
-                val numEdges = newG.numEdg
 
                 logger.debug { "Удалили ребро $edge у графа ${newG.name}. Нефиксированные рёбра: ${curElem.rawEdges}" }
-                val nm = Subgraph(newG, curEdges.sortEdges(newG), k, strategy, lastRemEdge = edge)
+                val nm = Subgraph(newG, strategy.sortEdges(curEdges, newG), k, strategy, lastRemEdge = edge)
                 logger.debug { "Оценка получившегося графа ${nm.score}" }
 
-                if (numEdges < rec) {
-                    rec = numEdges
-                    logger.debug { "Теперь рекорд $rec" }
+                val newRec = strategy.record(newG)
+                if (newRec < rec) {
+                    rec = newRec
+                    logger.info { "Теперь рекорд $rec" }
                     minG = newG
                     timestamps.make()
                     leaves.removeIf { it.score >= rec }
@@ -174,11 +186,6 @@ fun findSpanningKConnectedSubgraph(
     timestamps.make()
     return Result(minG, rec, timestamps)
 }
-
-fun List<Pair<Int, Int>>.sortEdges(g: Graph) =
-    this.sortedWith(Comparator
-        .comparing<Pair<Int, Int>, Int> { (u, v) -> min(g.deg(u), g.deg(v)) }
-        .thenComparing { (u, v) -> g.deg(u) + g.deg(v) }).toMutableList()
 
 data class Result(val answer: Graph, val rec: Int, val timestamps: Timestamps)
 
