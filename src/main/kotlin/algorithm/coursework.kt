@@ -90,19 +90,11 @@ private class UnweightedStrategy : Strategy {
 private class WeightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.sumWeights
 
-    /*override fun evaluate(sub: Subgraph): Int {
-        return sub.graph.sumWeights
-    }*/
-
     override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
-        edges.sortedWith(Comparator
-            .comparing<Pair<Int, Int>, Int> { graph.getWeightEdg(it) }
-            .thenComparing { (u, v) -> min(graph.deg(u), graph.deg(v)) }
-            .thenComparing { (u, v) -> graph.deg(u) + graph.deg(v) }).toMutableList()
-}
-
-private class GGStrategy : Strategy {
-    override fun record(graph: Graph) = graph.numEdg
+        edges.sortedWith(compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
+            .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+            .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) })
+            .toMutableList()
 }
 
 /**
@@ -127,11 +119,10 @@ fun findSpanningKConnectedSubgraph(
     var id = 0L
     val timestamps = Timestamps()
 
-    val leaves = TreeSet(Comparator
-        .comparing(Subgraph::score)
-        //.reversed() //если раскомментировать, то будут в начале графы с максимальной оценкой
-        .thenComparing { sub -> sub.rawEdges.size }
-        .thenComparing { sub -> sub.graph.name })
+    val leaves = TreeSet(compareBy<Subgraph> { it.score }
+        .reversed() //если раскомментировать, то будут в начале графы с максимальной оценкой
+        .thenBy { it.rawEdges.size }
+        .thenBy { it.graph.name })
 
     leaves.add(Subgraph(g, strategy.sortEdges(g.getEdges(), g), k, strategy)
         .apply { logger.debug { "Оценка исходного графа $score" } })
