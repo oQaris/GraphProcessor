@@ -84,7 +84,7 @@ private class UnweightedStrategy : Strategy {
         edges.sortedWith(
             Comparator
                 .comparing<Pair<Int, Int>, Int> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
-            .thenComparing { (u, v) -> graph.deg(u) + graph.deg(v) }).toMutableList()
+                .thenComparing { (u, v) -> graph.deg(u) + graph.deg(v) }).toMutableList()
 }
 
 private class WeightedStrategy : Strategy {

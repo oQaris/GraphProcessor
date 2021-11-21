@@ -1,7 +1,7 @@
 package storage
 
-import algorithm.edgeConnectivity
-import algorithm.vertexConnectivity
+import algorithm.connectivity
+import algorithm.localEdgeConnectivity
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 
@@ -10,17 +10,24 @@ fun genUndirectedGraph(n: Int, p: Float) =
         .apply {
             oriented = false
             getPairVer().shuffled()
-                .apply { takeLast((size * p).toInt()) }
+                .run {
+                    val ggg = (size * p).toInt()
+                    println("-------------------------" + ggg)
+                    takeLast(ggg)
+                }
                 .forEach { addEdg(it) }
         }
 
-fun genConnectedGraph(n: Int, p: Float, k: Int = 1): Graph {
+fun genConnectedGraph(
+    n: Int,
+    p: Float,
+    k: Int = 1,
+    localConnectivity: ((Graph, Int, Int) -> Int) = ::localEdgeConnectivity
+): Graph {
     var graph: Graph
     do {
         graph = genUndirectedGraph(n, p)
-    } while (edgeConnectivity(graph) < k ||
-        vertexConnectivity(graph) < k
-    )
+    } while (connectivity(graph, localConnectivity) < k)
     return graph
 }
 

@@ -1,6 +1,7 @@
 package storage
 
 import graphs.Graph
+import graphs.GraphException
 import java.io.File
 
 class SetFileGraph(
@@ -27,18 +28,7 @@ class SetFileGraph(
     fun push() {
         file.bufferedWriter().use { bw ->
             for (g in map.values) {
-                val size = g.numVer
-                bw.append(":").append(g.name).append(":")
-                bw.newLine()
-                for (i in 0 until size) {
-                    for (j in 0 until size)
-                        bw.append(
-                            if (g.isCom(i, j))
-                                g.getWeightEdg(i, j).toString()
-                            else "-"
-                        ).write(" ")
-                    bw.newLine()
-                }
+                bw.write(g.toString())
                 bw.flush()
             }
         }
@@ -48,7 +38,8 @@ class SetFileGraph(
         return map.put(graph.name, graph) == null
     }
 
-    operator fun get(name: String) = map[name]
+    operator fun get(name: String) =
+        map[name] ?: throw GraphException("The graph named $name is missing from the file $file")
 
     fun remove(name: String): Graph? {
         return map.remove(name)

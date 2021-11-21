@@ -2,6 +2,7 @@ package algorithm
 
 import graphs.Graph
 import mu.KotlinLogging
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.SetFileGraph
 import storage.genConnectedGraph
@@ -13,12 +14,13 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
 
+@Disabled
 internal class ConnectivityTest {
     private val logger = KotlinLogging.logger {}
 
     fun <T : Closeable, R> T.useWith(block: T.() -> R): R = use { with(it, block) }
 
-    val NUM_EX = 10
+    private val NUM_EX = 10
 
     @Test
     fun p2Test() {
@@ -122,7 +124,7 @@ internal class ConnectivityTest {
     @Test
     fun connected3Test() {
         val sfg = SetFileGraph()
-        val res = findSpanningKConnectedSubgraph(sfg["big"]!!, 2)
+        val res = findSpanningKConnectedSubgraph(sfg["big"], 2)
         println(res.answer)
         println(res.answer.numEdg)
     }
@@ -149,7 +151,7 @@ internal class ConnectivityTest {
     @Test
     fun correctTest() {
         val sfg = SetFileGraph()
-        val res = findSpanningKConnectedSubgraph(sfg["mega"]!!, 2)
+        val res = findSpanningKConnectedSubgraph(sfg["mega"], 2)
         println(res.answer)
         println(res.answer.numEdg)
     }

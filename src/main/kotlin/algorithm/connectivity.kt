@@ -2,6 +2,7 @@ package algorithm
 
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
+import kotlin.math.min
 
 /**
  * Нахождение вершинной связности путём поиска минимальной локальной вершинной связности между каждой парой вершин в графе.
@@ -30,7 +31,7 @@ fun edgeConnectivity(g: Graph): Int {
 fun connectivity(g: Graph, localConnectivity: ((g: Graph, u: Int, v: Int) -> Int)): Int {
     var minCon = Int.MAX_VALUE
     g.getPairVer().forEach { (u, v) ->
-        minCon = localConnectivity(g, u, v)
+        minCon = min(minCon, localConnectivity(g, u, v))
         if (minCon == 0) return 0
     }
     return minCon
