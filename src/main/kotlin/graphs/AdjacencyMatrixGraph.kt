@@ -34,7 +34,7 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     }
 
     //todo избавиться от дублирования кода как то
-    private fun <T : Collection<Collection<Any?>>> checkSize(srcData: T) {
+    private fun <T> checkSize(srcData: List<List<T>>) {
         require(srcData.isNotEmpty()) { ERR_SIZE_EM }
         srcData.forEach {
             require(srcData.size == it.size) { ERR_SIZE_SQ }
@@ -113,8 +113,11 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     override fun addEdg(u: Int, v: Int, weight: Int) {
         checkCorrectVer(u, v)
 
-        if (data[u][v] == null) numEdg++
-        else sumWeights += data[u][v]!! - weight
+        sumWeights +=
+            if (data[u][v] == null) {
+                numEdg++
+                weight
+            } else data[u][v]!! - weight
 
         data[u][v] = weight
         if (!oriented) data[v][u] = weight

@@ -71,7 +71,7 @@ interface Strategy {
     fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) = edges.toMutableList()
 }
 
-private class UnweightedStrategy : Strategy {
+class UnweightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.numEdg
 
     override fun evaluate(sub: Subgraph) = max(
@@ -81,20 +81,34 @@ private class UnweightedStrategy : Strategy {
     )
 
     override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
-        edges.sortedWith(
-            Comparator
-                .comparing<Pair<Int, Int>, Int> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
-                .thenComparing { (u, v) -> graph.deg(u) + graph.deg(v) }).toMutableList()
+        edges.sortedWith(compareBy<Pair<Int, Int>> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+            .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
+            .reversed()).toMutableList()
 }
 
-private class WeightedStrategy : Strategy {
+class WeightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.sumWeights
+
+    override fun evaluate(sub: Subgraph): Int {
+        val reqEdgNum =
+            if (sub.k == 1) sub.graph.numVer - 1
+            else ceil(sub.k * sub.graph.numVer / 2.0).toInt()
+        val reqMinWeight = sub.graph.getEdges()
+            .map { sub.graph.getWeightEdg(it)!! }
+            .sortedBy { it }
+            .take(reqEdgNum)
+            .sumOf { it }
+        val curMinWeight = sub.graph.getEdges()
+            .minus(sub.rawEdges)
+            .sumOf { sub.graph.getWeightEdg(it)!! }
+        return max(reqMinWeight, curMinWeight)
+    }
 
     override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
         edges.sortedWith(compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
             .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
-            .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) })
-            .toMutableList()
+            .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
+            .reversed()).toMutableList()
 }
 
 /**
@@ -138,7 +152,7 @@ fun findSpanningKConnectedSubgraph(
             if (curEdges.isEmpty())
                 continue
 
-            val edge = curEdges.removeLast()/*.removeFirst() - чтобы наоборот*/
+            val edge = curEdges.removeFirst()
 
             if (localConnectivity(curG, edge.first, edge.second) > k) {
 
