@@ -33,21 +33,6 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
         sumWeights = getEdges().sumOf { (i, j) -> data[i][j]!! }
     }
 
-    //todo избавиться от дублирования кода как то
-    private fun <T> checkSize(srcData: List<List<T>>) {
-        require(srcData.isNotEmpty()) { ERR_SIZE_EM }
-        srcData.forEach {
-            require(srcData.size == it.size) { ERR_SIZE_SQ }
-        }
-    }
-
-    private fun <T> checkSize(srcData: Array<Array<T>>) {
-        require(srcData.isNotEmpty()) { ERR_SIZE_EM }
-        srcData.forEach {
-            require(srcData.size == it.size) { ERR_SIZE_SQ }
-        }
-    }
-
     constructor(name: String, size: Int) : this(name) {
         require(size > 0) { ERR_SIZE_SQ }
         data = Array(size) { arrayOfNulls(size) }
@@ -235,6 +220,17 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
             for (i in src.indices)
                 System.arraycopy(src[i], 0, target[i], 0, src[i].size)
             return target
+        }
+
+        private fun <T> checkSize(srcData: Array<Array<T>>) {
+            checkSize(srcData.asList().map { it.asList() })
+        }
+
+        private fun <T> checkSize(srcData: List<List<T>>) {
+            require(srcData.isNotEmpty())
+            srcData.forEach {
+                require(srcData.size == it.size)
+            }
         }
     }
 }

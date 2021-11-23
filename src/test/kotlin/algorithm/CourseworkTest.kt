@@ -5,8 +5,8 @@ import graphs.Graph
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import storage.Generator
 import storage.SetFileGraph
-import storage.genConnectedGraph
 import kotlin.test.assertTrue
 
 internal class CourseworkTest {
@@ -46,7 +46,7 @@ internal class CourseworkTest {
         val conn = if (isEdgeConn) ::localEdgeConnectivity else ::localVertexConnectivity
         val startN = k + 2
         for (n in startN until startN + numExp) {
-            val graph = genConnectedGraph(n, 0.8f, k, conn)
+            val graph = Generator(numVer = n, p = 0.8f, conn = k, localConn = conn).build()
             val res = findSpanningKConnectedSubgraph(graph, k, conn)
             checkMinWeightWithConn(res.answer, k, conn)
         }
@@ -59,21 +59,23 @@ internal class CourseworkTest {
     ) {
         assertEquals(k, connectivity(g, localConnectivity)) { "Граф не $k-связен!" }
         g.getEdges().forEach {
-            val gCpy = AdjacencyMatrixGraph(g)
-            gCpy.remEdg(it)
-            assertTrue(
-                connectivity(gCpy, localConnectivity) < k,
-                "Граф не минимальный! Можно удалить ребро $it"
-            )
+            if (g.getWeightEdg(it)!! >= 0) {
+                val gCpy = AdjacencyMatrixGraph(g)
+                gCpy.remEdg(it)
+                assertTrue(
+                    connectivity(gCpy, localConnectivity) < k,
+                    "Граф не минимальный! Можно удалить ребро $it"
+                )
+            }
         }
     }
 
     @Test
     fun fullNkTest() {
         for (n in 5..10) {
-            val graph = genConnectedGraph(n, 0.8f, 3, ::localEdgeConnectivity)
-            val res = findSpanningKConnectedSubgraph(graph, 3, ::localEdgeConnectivity)
-            assertEquals(3, edgeConnectivity(res.answer))
+            val graph = Generator(n, p = 1f, weights = -1..5).build()
+            val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy())
+            checkMinWeightWithConn(res.answer, 3)
         }
     }
 }

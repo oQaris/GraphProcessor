@@ -4,9 +4,8 @@ import graphs.Graph
 import mu.KotlinLogging
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import storage.Generator
 import storage.SetFileGraph
-import storage.genConnectedGraph
-import storage.genGraphWithGC
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -21,6 +20,8 @@ internal class ConnectivityTest {
     fun <T : Closeable, R> T.useWith(block: T.() -> R): R = use { with(it, block) }
 
     private val NUM_EX = 10
+
+    private fun genGraphWithGC(n: Int, p: Float) = Generator(numVer = n, withGC = true, p = p / 10).build()
 
     @Test
     fun p2Test() {
@@ -115,7 +116,14 @@ internal class ConnectivityTest {
         }
         for (p in 1..10) {
             for (k in 1 until n) {
-                val graphs = Array(10) { genConnectedGraph(n, p.toFloat() / 10, k) }
+                val graphs = Array(10) {
+                    Generator(
+                        numVer = n,
+                        p = p.toFloat() / 10,
+                        conn = k,
+                        localConn = ::localVertexConnectivity
+                    ).build()
+                }
                 megaFun(graphs, k)
             }
         }
