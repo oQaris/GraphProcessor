@@ -13,6 +13,7 @@ class TimeMeter {
 
     /** @return Медиану временных меток */
     fun getMedian(): Long {
+        if (times.isEmpty()) return 0
         val sortTimes = times.sorted()
         return if (times.size % 2 == 1) sortTimes[(times.size + 1) / 2]
         else (sortTimes[times.size / 2] + sortTimes[(times.size + 1) / 2]) / 2

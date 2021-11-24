@@ -11,6 +11,11 @@ class SetFileGraph(
     val names = map.keys
     val graphs = map.values
 
+    init {
+        if (!file.isFile) file.createNewFile()
+        pull()
+    }
+
     constructor(f: File, vararg graphs: Graph) :
             this(f, graphs.map { it.name }.zip(graphs).toMap().toMutableMap())
 
@@ -43,11 +48,5 @@ class SetFileGraph(
 
     fun remove(name: String): Graph? {
         return map.remove(name)
-    }
-
-    init {
-        if (!file.isFile)
-            file.createNewFile()
-        pull()
     }
 }

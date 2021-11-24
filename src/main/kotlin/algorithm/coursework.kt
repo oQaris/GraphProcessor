@@ -3,8 +3,8 @@ package algorithm
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import mu.KotlinLogging
+import storage.Generator
 import java.util.*
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.properties.Delegates
@@ -18,14 +18,17 @@ private val logger = KotlinLogging.logger {}
  */
 class Subgraph(
     val graph: Graph,
-    val rawEdges: MutableList<Pair<Int, Int>>,
     val k: Int,
     private val strategy: Strategy,
+    unfixedEdges: List<Pair<Int, Int>>,
     lastRemEdge: Pair<Int, Int>? = null
 ) {
+    val rawEdges: MutableList<Pair<Int, Int>>
     var score by Delegates.notNull<Int>()
 
     init {
+        this.rawEdges = unfixedEdges.toMutableList()
+        strategy.sortEdges(this.rawEdges, graph)
         updateScore(lastRemEdge)
     }
 
@@ -68,35 +71,32 @@ class Subgraph(
 interface Strategy {
     fun record(graph: Graph): Int
     fun evaluate(sub: Subgraph) = Int.MIN_VALUE
-    fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) = edges.toMutableList()
+    fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph)
 }
 
 class UnweightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.numEdg
 
-    override fun evaluate(sub: Subgraph) = max(
-        if (sub.k == 1) sub.graph.numVer - 1
-        else ceil(sub.k * sub.graph.numVer / 2.0).toInt(),
-        sub.graph.numEdg - sub.rawEdges.size
-    )
+    override fun evaluate(sub: Subgraph) =
+        max(
+            Generator.minNumEdge(sub.graph.numVer, sub.k),
+            sub.graph.numEdg - sub.rawEdges.size
+        )
 
-    override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
-        edges.sortedWith(compareBy<Pair<Int, Int>> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
+        compareBy<Pair<Int, Int>> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
-            .reversed()).toMutableList()
+            .reversed())
 }
 
 class WeightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.sumWeights
 
     override fun evaluate(sub: Subgraph): Int {
-        val reqEdgNum =
-            if (sub.k == 1) sub.graph.numVer - 1
-            else ceil(sub.k * sub.graph.numVer / 2.0).toInt()
         val reqMinWeight = sub.graph.getEdges()
             .map { sub.graph.getWeightEdg(it)!! }
             .sortedBy { it }
-            .take(reqEdgNum)
+            .take(Generator.minNumEdge(sub.graph.numVer, sub.k))
             .sumOf { it }
         val curMinWeight = sub.graph.getEdges()
             .minus(sub.rawEdges)
@@ -104,11 +104,11 @@ class WeightedStrategy : Strategy {
         return max(reqMinWeight, curMinWeight)
     }
 
-    override fun sortEdges(edges: List<Pair<Int, Int>>, graph: Graph) =
-        edges.sortedWith(compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
+    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
+        compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
             .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
-            .reversed()).toMutableList()
+            .reversed())
 }
 
 /**
@@ -138,7 +138,7 @@ fun findSpanningKConnectedSubgraph(
         .thenBy { it.rawEdges.size }
         .thenBy { it.graph.name })
 
-    leaves.add(Subgraph(g, strategy.sortEdges(g.getEdges(), g), k, strategy)
+    leaves.add(Subgraph(g, k, strategy, g.getEdges())
         .apply { logger.debug { "Оценка исходного графа $score" } })
 
     try {
@@ -162,7 +162,11 @@ fun findSpanningKConnectedSubgraph(
                 }
 
                 logger.debug { "Удалили ребро $edge у графа ${newG.name}. Нефиксированные рёбра: ${curElem.rawEdges}" }
-                val nm = Subgraph(newG, strategy.sortEdges(curEdges, newG), k, strategy, lastRemEdge = edge)
+                val nm = Subgraph(
+                    newG, k, strategy,
+                    curEdges.toMutableList(),
+                    lastRemEdge = edge
+                )
                 logger.debug { "Оценка получившегося графа ${nm.score}" }
 
                 val newRec = strategy.record(newG)

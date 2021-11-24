@@ -28,12 +28,10 @@ class Generator(
         require((numEdg != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
         val maxEdges = maxNumEdge(numVer)
         numEdge = numEdg ?: (maxEdges * p!!).roundToInt()
-        require(numEdge in 0..maxEdges) { "Не может быть $numEdge рёбер в графе с $numVer вершинами" }
+        require(numEdge in 0..maxEdges) { "Не может быть $numEdge рёбер в графе с $numVer вершинами (max $maxEdges)" }
         require(conn == null || conn > 0) { "Связность графа не может быть $conn" }
         if (conn != null) {
-            val reqEdgNum =
-                if (conn == 1) numVer - 1
-                else ceil(conn * numVer / 2.0).toInt()
+            val reqEdgNum = minNumEdge(numVer, conn)
             require(numEdge >= reqEdgNum) { "В $conn-связном графе не может быть $numEdg рёбер (min $reqEdgNum)" }
         }
     }
@@ -47,7 +45,7 @@ class Generator(
             graph = implementation.invoke(namePattern, numVer)
                 .apply { oriented = isDir }
                 .apply { if (withGC) withGC() }
-                .addEdge(numEdge, weights)
+                .addEdge(numEdge - (if (withGC) numVer else 0), weights)
         } while (conn != null && connectivity(graph, localConn) < conn)
         logger.debug { "Граф сгенерирован:\n$graph" }
         return graph
@@ -57,7 +55,8 @@ class Generator(
         logger.debug { "Добавляем $count рёбер" }
         getPairVer().filterNot { isCom(it) }
             .shuffled()
-            .takeLast(count)
+            .take(count)
+            .apply { require(size == count) { "Слишком много рёбер добавляете (max $size)" } }
             .forEach { addEdg(it, weightRange.random()) }
     }
 
@@ -68,5 +67,10 @@ class Generator(
             .forEach { addEdg(it) }
     }
 
-    private fun maxNumEdge(n: Int) = n * (n - 1) / 2
+    companion object {
+        fun maxNumEdge(n: Int) = n * (n - 1) / 2
+        fun minNumEdge(n: Int, k: Int) =
+            if (k == 1) n - 1
+            else ceil(k * n / 2.0).toInt()
+    }
 }

@@ -2,24 +2,39 @@ package algorithm
 
 import org.junit.jupiter.api.Test
 import storage.Generator
+import storage.SetFileGraph
 import utils.TimeMeter
+import java.io.File
+import kotlin.test.assertEquals
 
 internal class CourseworkDemo {
 
     @Test
-    fun `Зависимость времени работы алгоритма от количества рёбер в графе с 20 вершинами (k=2)`() {
+    fun `number of edges in the graph`() {
+        val isNewDataGen = true
         val k = 2
+        val n = 30
         val expCount = 100
-        println("№;ср.арифм;мода;медиана;макс.;мин.;ср.арифм.рек.;мода.рек.;медиана.рек.;макс.рек.;мин.рек.;")
-        for (numEdg in 20..190) {
+        val sfg = SetFileGraph(File("TestData.txt"))
+        println("N_edges;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;")
+
+        for (numEdg in Generator.minNumEdge(n, k)..Generator.maxNumEdge(n)) {
             val timeMeter = TimeMeter()
             val timeMeterRec = TimeMeter()
-            repeat(expCount) {
-                val graph = Generator(20, numEdg, conn = k, withGC = true).build()
+
+            repeat(expCount) { numEx ->
+                val graph =
+                    if (isNewDataGen)
+                        Generator(n, numEdg, conn = k, withGC = true, name = "$numEdg$numEx").build()
+                            .apply { sfg.add(this) }
+                    else sfg["$numEdg$numEx"]
+
                 val res = findSpanningKConnectedSubgraph(graph, k)
                 timeMeter.addTimestamp(res.timestamps.get().last())
-                timeMeterRec.addTimestamp(res.timestamps.get().let { it[it.size - 2] })
+                if (res.timestamps.get().size >= 3)
+                    timeMeterRec.addTimestamp(res.timestamps.get().let { it[it.size - 3] })
             }
+            if (isNewDataGen) sfg.push()
             println(
                 "$numEdg;${timeMeter.getMean()};${timeMeter.getMode()};${timeMeter.getMedian()};${timeMeter.getMax()};${timeMeter.getMin()};" +
                         "${timeMeterRec.getMean()};${timeMeterRec.getMode()};${timeMeterRec.getMedian()};${timeMeterRec.getMax()};${timeMeterRec.getMin()};"
@@ -28,17 +43,26 @@ internal class CourseworkDemo {
     }
 
     @Test
-    fun `Зависимость времени работы алгоритма от количества вершин графа`() {
+    fun `number of vertices in the graph`() {
 
     }
 
     @Test
-    fun `Зависимость времени работы алгоритма от значения k в полном графе на 30 вершинах`() {
-
+    fun `k in full graph`() {
+        val n = 35
+        println("k;Time;")
+        for (k in 1 until n) {
+            val graph = Generator(n, p = 1f, conn = k, withGC = k != 1).build()
+            val res = findSpanningKConnectedSubgraph(graph, k)
+            println(
+                "$k;${res.timestamps.get().last()};"
+            )
+            assertEquals(Generator.minNumEdge(n, k), res.answer.numEdg)
+        }
     }
 
     @Test
-    fun `Сравнение скорости алгоритмов с рёберной и вершинной связностью`() {
+    fun `Comparison of the speed of algorithms with edge and vertex connectivity`() {
 
     }
 }
