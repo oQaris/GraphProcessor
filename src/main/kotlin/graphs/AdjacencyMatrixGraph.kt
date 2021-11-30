@@ -167,17 +167,12 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
 
     override fun remEdg(u: Int, v: Int) {
         checkCorrectVer(u, v)
-
         if (data[u][v] != null) {
             numEdg--
             sumWeights -= data[u][v]!!
         }
-
-        if (oriented) data[u][v] = null
-        else {
-            data[u][v] = null
-            data[v][u] = null
-        }
+        data[u][v] = null
+        if (!oriented) data[v][u] = null
     }
 
     // Не менять, используется парсером

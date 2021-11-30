@@ -122,7 +122,7 @@ class WeightedStrategy : Strategy {
 fun findSpanningKConnectedSubgraph(
     g: Graph,
     k: Int,
-    localConnectivity: ((Graph, Int, Int) -> Int) = ::localEdgeConnectivity,
+    localConnectivity: LocalConnectivity = ::localEdgeConnectivity,
     strategy: Strategy = UnweightedStrategy()
 ): Result {
 
@@ -202,7 +202,7 @@ class Timestamps {
     private val start = System.currentTimeMillis()
     private var times = mutableListOf<Long>()
 
-    fun get() = times.map { it - start }
+    val get by lazy { times.map { it - start } }
 
     fun make() = times.add(System.currentTimeMillis())
 }

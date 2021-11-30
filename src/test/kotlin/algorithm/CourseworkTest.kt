@@ -55,7 +55,7 @@ internal class CourseworkTest {
     private fun checkMinWeightWithConn(
         g: Graph,
         k: Int,
-        localConnectivity: ((Graph, Int, Int) -> Int) = ::localEdgeConnectivity,
+        localConnectivity: LocalConnectivity = ::localEdgeConnectivity,
     ) {
         assertEquals(k, connectivity(g, localConnectivity)) { "Граф не $k-связен!" }
         g.getEdges().forEach {

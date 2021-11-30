@@ -15,24 +15,24 @@ internal class CourseworkDemo {
         val k = 2
         val n = 30
         val expCount = 100
-        val sfg = SetFileGraph(File("TestData.txt"))
+        val sfg = SetFileGraph(File("TestData2.txt"))
         println("N_edges;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;")
 
-        for (numEdg in Generator.minNumEdge(n, k)..Generator.maxNumEdge(n)) {
+        for (numEdg in /*Generator.minNumEdge(n, k)*/61..Generator.maxNumEdge(n)) {
             val timeMeter = TimeMeter()
             val timeMeterRec = TimeMeter()
 
             repeat(expCount) { numEx ->
                 val graph =
                     if (isNewDataGen)
-                        Generator(n, numEdg, conn = k, withGC = true, name = "$numEdg$numEx").build()
+                        Generator(n, numEdg, conn = k, withGC = true, name = "${numEdg}_${numEx}").build()
                             .apply { sfg.add(this) }
                     else sfg["$numEdg$numEx"]
 
                 val res = findSpanningKConnectedSubgraph(graph, k)
-                timeMeter.addTimestamp(res.timestamps.get().last())
-                if (res.timestamps.get().size >= 3)
-                    timeMeterRec.addTimestamp(res.timestamps.get().let { it[it.size - 3] })
+                timeMeter.addTimestamp(res.timestamps.get.last())
+                if (res.timestamps.get.size >= 3)
+                    timeMeterRec.addTimestamp(res.timestamps.get.let { it[it.size - 3] })
             }
             if (isNewDataGen) sfg.push()
             println(
@@ -55,7 +55,7 @@ internal class CourseworkDemo {
             val graph = Generator(n, p = 1f, conn = k, withGC = k != 1).build()
             val res = findSpanningKConnectedSubgraph(graph, k)
             println(
-                "$k;${res.timestamps.get().last()};"
+                "$k;${res.timestamps.get.last()};"
             )
             assertEquals(Generator.minNumEdge(n, k), res.answer.numEdg)
         }

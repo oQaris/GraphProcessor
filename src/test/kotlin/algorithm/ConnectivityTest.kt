@@ -31,7 +31,7 @@ internal class ConnectivityTest {
             for (i in 1..10) {
                 val graph = genGraphWithGC(n, p.toFloat() / 10)
                 val res = findSpanningKConnectedSubgraph(graph, 2)
-                print(res.timestamps.get().last())
+                print(res.timestamps.get.last())
                 print(";")
             }
             p += 1
@@ -55,7 +55,7 @@ internal class ConnectivityTest {
                 try {
                     val res = future[1, TimeUnit.MINUTES]
 
-                    val ts = res.timestamps.get().takeLast(3)
+                    val ts = res.timestamps.get.takeLast(3)
                     rp += ts[0]
                     r += ts[1]
                     all += ts[2]
@@ -78,7 +78,7 @@ internal class ConnectivityTest {
         for (k in (1..NUM_EX)) {
             logger.info { "k = $k" }
             val res = findSpanningKConnectedSubgraph(graph, k)
-            val ts = res.timestamps.get().takeLast(4).toMutableList()
+            val ts = res.timestamps.get.takeLast(4).toMutableList()
             while (ts.size != 4)
                 ts.add(ts[0])
             println("${ts[0]};${ts[1]};${ts[3]}")
@@ -90,7 +90,7 @@ internal class ConnectivityTest {
         val n = 20
         val graphs = Array(6) { genGraphWithGC(n, 0.6f) }
         val res = graphs.map { findSpanningKConnectedSubgraph(it, 2) }
-            .map { it.timestamps.get() }
+            .map { it.timestamps.get }
         for (i in 0 until res.maxOf { it.size }) {
             println("$i;" + res.map { if (i < it.size) it[i] else 0 }.joinToString(";"))
         }
@@ -101,7 +101,7 @@ internal class ConnectivityTest {
         val n = 20
         var i = 1
         fun megaFun(graphs: Array<Graph>, k: Int) {
-            fun List<Result>.uxxx() = this.map { it.timestamps.get().takeLast(3) }
+            fun List<Result>.uxxx() = this.map { it.timestamps.get.takeLast(3) }
                 .reduceRight { list, acc ->
                     acc.zip(list).map { it.first + it.second }.map { it / list.size }
                 }

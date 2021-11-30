@@ -1,5 +1,6 @@
 package storage
 
+import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import graphs.AdjacencyMatrixGraph
@@ -8,8 +9,6 @@ import mu.KotlinLogging
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
-private val logger = KotlinLogging.logger {}
-
 class Generator(
     private val numVer: Int,
     numEdg: Int? = null,
@@ -17,12 +16,15 @@ class Generator(
     private val name: String? = null,
     private val weights: IntRange = 1..1,
     private val conn: Int? = null,
-    private val localConn: ((Graph, Int, Int) -> Int) = ::localEdgeConnectivity,
+    private val localConn: LocalConnectivity = ::localEdgeConnectivity,
     private val isDir: Boolean = false,
     private val withGC: Boolean = false,
-    private val implementation: (String, Int) -> Graph = ::AdjacencyMatrixGraph
+    private val implementation: (String, Int) -> Graph = ::AdjacencyMatrixGraph,
+    private val except: Collection<Graph> = mutableListOf(),
+    private var genLim: Int = Short.MAX_VALUE.toInt()
 ) {
     private val numEdge: Int
+    private val logger = KotlinLogging.logger {}
 
     init {
         require((numEdg != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
@@ -34,6 +36,7 @@ class Generator(
             val reqEdgNum = minNumEdge(numVer, conn)
             require(numEdge >= reqEdgNum) { "В $conn-связном графе не может быть $numEdg рёбер (min $reqEdgNum)" }
         }
+        require(genLim > 0) { "Предел генерации должен быть больше 0" }
     }
 
     fun build(): Graph {
@@ -46,7 +49,11 @@ class Generator(
                 .apply { oriented = isDir }
                 .apply { if (withGC) withGC() }
                 .addEdge(numEdge - (if (withGC) numVer else 0), weights)
-        } while (conn != null && connectivity(graph, localConn) < conn)
+            genLim--
+        } while (genLim > 0 &&
+            !except.contains(graph) &&
+            (conn != null && connectivity(graph, localConn) < conn)
+        )
         logger.debug { "Граф сгенерирован:\n$graph" }
         return graph
     }
@@ -62,8 +69,9 @@ class Generator(
 
     private fun Graph.withGC() = apply {
         logger.debug { "Создаём Гамильтонов цикл" }
-        (0 until numVer).zipWithNext()
-            .plus(numVer - 1 to 0)
+        (0 until numVer).shuffled()
+            .run { plus(first()) }
+            .zipWithNext()
             .forEach { addEdg(it) }
     }
 

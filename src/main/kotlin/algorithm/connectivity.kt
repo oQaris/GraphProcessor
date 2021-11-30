@@ -4,6 +4,8 @@ import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import kotlin.math.min
 
+typealias LocalConnectivity = (Graph, Int, Int) -> Int
+
 /**
  * Нахождение вершинной связности путём поиска минимальной локальной вершинной связности между каждой парой вершин в графе.
  *
