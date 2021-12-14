@@ -5,6 +5,7 @@ import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
+import graphs.GraphException
 import mu.KotlinLogging
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -21,7 +22,7 @@ class Generator(
     private val withGC: Boolean = (conn ?: 0) > 1,
     private val implementation: (String, Int) -> Graph = ::AdjacencyMatrixGraph,
     private val except: Collection<Graph> = mutableListOf(),
-    private var genLim: Int = Short.MAX_VALUE.toInt()
+    private val genLim: Int = Short.MAX_VALUE.toInt()
 ) {
     private val numEdge: Int
     private val logger = KotlinLogging.logger {}
@@ -42,16 +43,21 @@ class Generator(
     fun build(): Graph {
         val namePattern =
             name ?: "${if (isDir) "Dir" else "Undir"}_${numVer}x${numEdge}_${weights}${if (withGC) "_GC" else ""}"
+
         var graph: Graph
+        var mutableLim = genLim
         do {
+            if (mutableLim == 0)
+                throw GraphException("Превышен предел генерации ($genLim). Скорее всего граф с данными параметрами не существует")
             logger.debug { "Генерируем граф с именем $namePattern" }
+
             graph = implementation.invoke(namePattern, numVer)
                 .apply { oriented = isDir }
                 .apply { if (withGC) withGC() }
                 .addEdge(numEdge - (if (withGC) numVer else 0), weights)
-            genLim--
-        } while (genLim > 0 &&
-            !except.contains(graph) &&
+
+            mutableLim--
+        } while (except.contains(graph) ||
             (conn != null && connectivity(graph, localConn) < conn)
         )
         logger.debug { "Граф сгенерирован:\n$graph" }
