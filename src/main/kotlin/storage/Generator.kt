@@ -11,14 +11,14 @@ import kotlin.math.roundToInt
 
 class Generator(
     private val numVer: Int,
-    numEdg: Int? = null,
+    _numEdge: Int? = null,
     p: Float? = null,
     private val name: String? = null,
     private val weights: IntRange = 1..1,
     private val conn: Int? = null,
     private val localConn: LocalConnectivity = ::localEdgeConnectivity,
     private val isDir: Boolean = false,
-    private val withGC: Boolean = false,
+    private val withGC: Boolean = (conn ?: 0) > 1,
     private val implementation: (String, Int) -> Graph = ::AdjacencyMatrixGraph,
     private val except: Collection<Graph> = mutableListOf(),
     private var genLim: Int = Short.MAX_VALUE.toInt()
@@ -27,14 +27,14 @@ class Generator(
     private val logger = KotlinLogging.logger {}
 
     init {
-        require((numEdg != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
+        require((_numEdge != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
         val maxEdges = maxNumEdge(numVer)
-        numEdge = numEdg ?: (maxEdges * p!!).roundToInt()
+        numEdge = _numEdge ?: (maxEdges * p!!).roundToInt()
         require(numEdge in 0..maxEdges) { "Не может быть $numEdge рёбер в графе с $numVer вершинами (max $maxEdges)" }
         require(conn == null || conn > 0) { "Связность графа не может быть $conn" }
         if (conn != null) {
             val reqEdgNum = minNumEdge(numVer, conn)
-            require(numEdge >= reqEdgNum) { "В $conn-связном графе не может быть $numEdg рёбер (min $reqEdgNum)" }
+            require(numEdge >= reqEdgNum) { "В $conn-связном графе не может быть $numEdge рёбер (min $reqEdgNum)" }
         }
         require(genLim > 0) { "Предел генерации должен быть больше 0" }
     }
