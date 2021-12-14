@@ -24,10 +24,10 @@ private val gfs = SetFileGraph(File("GraphData"))
 open class GraphParameter {
     class GraphConverter : ITypeConverter<Graph> {
         override fun convert(value: String) =
-            gfs[value] ?: throw TypeConversionException("No graph named \"$value\" was found.")
+            gfs[value]
     }
 
-    class GraphCandidates : ArrayList<String>(gfs.names)
+    class GraphCandidates : ArrayList<String>(gfs.keys)
 
     @Parameters(
         index = "0", description = [DESCRIPTION_GRAPH],
@@ -80,9 +80,9 @@ class GPShow : Runnable {
 
     override fun run() {
         if (exclusive.isOnlyNames)
-            println(gfs.names.joinToString("\n"))
+            println(gfs.keys.joinToString("\n"))
         else if (exclusive.isAll)
-            println(gfs.graphs.joinToString("\n"))
+            println(gfs.values.joinToString("\n"))
         else println(exclusive.graphs.joinToString("\n"))
     }
 }
