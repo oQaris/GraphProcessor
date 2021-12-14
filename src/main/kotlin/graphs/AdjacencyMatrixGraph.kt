@@ -5,7 +5,7 @@ import java.util.*
 /**
  * Реализация графа на базе матрицы смежности
  */
-class AdjacencyMatrixGraph(override var name: String) : Graph {
+class AdjacencyMatrixGraph(override val name: String) : Graph {
     override var oriented: Boolean = false
         set(value) {
             if (field && !value)

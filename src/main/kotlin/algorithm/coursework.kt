@@ -21,7 +21,8 @@ class Subgraph(
     val k: Int,
     private val strategy: Strategy,
     unfixedEdges: List<Pair<Int, Int>>,
-    lastRemEdge: Pair<Int, Int>? = null
+    lastRemEdge: Pair<Int, Int>? = null,
+    var order: Int = 0
 ) {
     val rawEdges: MutableList<Pair<Int, Int>>
     var score by Delegates.notNull<Int>()
@@ -130,15 +131,15 @@ fun findSpanningKConnectedSubgraph(
     require(connectivity(g, localConnectivity) >= k) { "The graph must have connectivity >= $k" }
     var rec = strategy.record(g)
     var minG = g
-    var id = 0L
+    var order = 0
     val timestamps = Timestamps()
 
     val leaves = TreeSet(compareBy<Subgraph> { it.score }
-        .reversed() //если раскомментировать, то будут в начале графы с максимальной оценкой
+        //.reversed() // в начале графы с максимальной оценкой
         .thenBy { it.rawEdges.size }
-        .thenBy { it.graph.name })
+        .thenBy { it.order }) // этот костыль нужен чтоб в TreeSet не удалялись графы, которые равны по компаратору
 
-    leaves.add(Subgraph(g, k, strategy, g.getEdges())
+    leaves.add(Subgraph(g, k, strategy, g.getEdges(), order = ++order)
         .apply { logger.debug { "Оценка исходного графа $score" } })
 
     try {
@@ -156,16 +157,14 @@ fun findSpanningKConnectedSubgraph(
 
             if (localConnectivity(curG, edge.first, edge.second) > k) {
 
-                val newG = AdjacencyMatrixGraph(curG).apply {
-                    remEdg(edge)
-                    name = id++.toString()
-                }
+                val newG = AdjacencyMatrixGraph(curG).apply { remEdg(edge); ++order }
 
-                logger.debug { "Удалили ребро $edge у графа ${newG.name}. Нефиксированные рёбра: ${curElem.rawEdges}" }
+                logger.debug { "Удалили ребро $edge у графа ${order}. Нефиксированные рёбра: ${curElem.rawEdges}" }
                 val nm = Subgraph(
                     newG, k, strategy,
                     curEdges.toMutableList(),
-                    lastRemEdge = edge
+                    lastRemEdge = edge,
+                    order = order
                 )
                 logger.debug { "Оценка получившегося графа ${nm.score}" }
 
@@ -181,9 +180,9 @@ fun findSpanningKConnectedSubgraph(
                     throw IllegalArgumentException("Что то пошло не так 1.")
             }
             curElem.updateScore()
-            if (curElem.score < rec && !leaves.add(curElem
-                    .apply { graph.name = id++.toString() })
-            ) throw IllegalArgumentException("Что то пошло не так 2.")
+            curElem.order = ++order
+            if (curElem.score < rec && !leaves.add(curElem))
+                throw IllegalArgumentException("Что то пошло не так 2.")
         }
     } catch (e: OutOfMemoryError) {
         logger.error(e) { "Всего графов: ${leaves.size}" }

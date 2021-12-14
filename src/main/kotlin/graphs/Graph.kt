@@ -4,7 +4,7 @@ interface Graph {
     /**
      * Имя графа
      */
-    var name: String
+    val name: String
 
     /**
      * Если граф ориентированный, равна true, иначе - false
