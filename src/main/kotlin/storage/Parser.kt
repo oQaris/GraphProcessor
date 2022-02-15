@@ -2,7 +2,7 @@ package storage
 
 import graphs.AdjacencyMatrixGraph
 
-private val noEdgeTokens = setOf("-", "0")
+private val noEdgeTokens = setOf("-" /*"0"*/)
 private val pattern = "(-?\\d+)|${noEdgeTokens.joinToString("|")}".toRegex()
 private var id = 0
 
