@@ -1,5 +1,7 @@
 package utils
 
+import kotlin.math.abs
+
 class TimeMeter {
     private val times = mutableListOf<Long>()
 
@@ -15,8 +17,9 @@ class TimeMeter {
     fun getMedian(): Long {
         if (times.isEmpty()) return 0
         val sortTimes = times.sorted()
-        return if (times.size % 2 == 1) sortTimes[(times.size + 1) / 2]
-        else (sortTimes[times.size / 2] + sortTimes[(times.size + 1) / 2]) / 2
+        val n = times.size
+        return if (n % 2 == 1) sortTimes[(n - 1) / 2]
+        else (sortTimes[n / 2 - 1] + sortTimes[n / 2]) / 2
     }
 
     /** @return Моду временных меток */
@@ -31,11 +34,15 @@ class TimeMeter {
     fun getMin() = times.minOrNull() ?: 0L
 
     /** Выводит на консоль схематичный график временных меток */
-    fun printGraph() {
-        val min = getMin()
-        for (time in times) {
-            val t = time / min
-            println("*".repeat(t.toInt()))
+    fun printGraph(segmentLen: Int = 128) {
+        require(segmentLen > 0) { "Длина сегмента для вывода должна быть больше 0, но было $segmentLen" }
+        val maxAbsOr1 = times.maxOfOrNull { abs(it) }.let { if (it == null || it == 0L) 1 else it }
+        val newTimes = times.map { (abs(it) * segmentLen / maxAbsOr1).toInt() }.zip(times)
+        val maxShift = newTimes.maxOfOrNull { (abs, orig) -> if (orig < 0) abs else 0 } ?: 0
+        newTimes.forEach { (abs, orig) ->
+            if (orig > 0) print(" ".repeat(maxShift))
+            if (orig < 0) print(" ".repeat(maxShift - abs))
+            println("*".repeat(abs))
         }
     }
 }
