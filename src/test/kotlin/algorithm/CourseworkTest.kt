@@ -1,5 +1,8 @@
 package algorithm
 
+import algorithm.thesis.UnweightedStrategy
+import algorithm.thesis.WeightedStrategy
+import algorithm.thesis.findSpanningKConnectedSubgraph
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -52,6 +55,17 @@ internal class CourseworkTest {
         }
     }
 
+    @Test
+    fun fullNkTest() {
+        for (n in 5..10) {
+            val graph = Generator(n, p = 1f, weights = -1..5).build()
+            println(graph)
+            val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy())
+            println(res.answer)
+            checkMinWeightWithConn(res.answer, 3)
+        }
+    }
+
     private fun checkMinWeightWithConn(
         g: Graph,
         k: Int,
@@ -64,18 +78,28 @@ internal class CourseworkTest {
                 gCpy.remEdg(it)
                 assertTrue(
                     connectivity(gCpy, localConnectivity) < k,
-                    "Граф не минимальный! Можно удалить ребро $it"
+                    "Граф $g не минимальный! Можно удалить ребро $it"
                 )
             }
         }
     }
 
     @Test
-    fun fullNkTest() {
-        for (n in 5..10) {
-            val graph = Generator(n, p = 1f, weights = -1..5).build()
-            val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy())
-            checkMinWeightWithConn(res.answer, 3)
-        }
+    fun textX() {
+        val sfg = SetFileGraph()
+        val graph = sfg["textX"]
+        println(graph)
+
+        val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy())
+        println(res.answer)
+        checkMinWeightWithConn(res.answer, 3)
+
+        assertEquals(graph, res.answer)
+
+        assertEquals(3, edgeConnectivity(graph))
+        assertEquals(3, edgeConnectivity(graph))
+        assertEquals(1, graph.getWeightEdg(0, 6))
+        graph.remEdg(0, 6)
+        assertEquals(2, edgeConnectivity(graph))
     }
 }

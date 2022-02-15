@@ -1,6 +1,10 @@
 package console
 
-import algorithm.*
+import algorithm.isomorphism
+import algorithm.localEdgeConnectivity
+import algorithm.localVertexConnectivity
+import algorithm.planarity
+import algorithm.thesis.findSpanningKConnectedSubgraph
 import graphs.Graph
 import picocli.CommandLine.*
 import storage.SetFileGraph

@@ -28,16 +28,16 @@ class Generator(
     private val logger = KotlinLogging.logger {}
 
     init {
-        require((_numEdge != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
+        requireG((_numEdge != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
         val maxEdges = maxNumEdge(numVer)
         numEdge = _numEdge ?: (maxEdges * p!!).roundToInt()
-        require(numEdge in 0..maxEdges) { "Не может быть $numEdge рёбер в графе с $numVer вершинами (max $maxEdges)" }
-        require(conn == null || conn > 0) { "Связность графа не может быть $conn" }
+        requireG(numEdge in 0..maxEdges) { "Не может быть $numEdge рёбер в графе с $numVer вершинами (max $maxEdges)" }
+        requireG(conn == null || conn > 0) { "Связность графа не может быть $conn" }
         if (conn != null) {
             val reqEdgNum = minNumEdge(numVer, conn)
-            require(numEdge >= reqEdgNum) { "В $conn-связном графе не может быть $numEdge рёбер (min $reqEdgNum)" }
+            requireG(numEdge >= reqEdgNum) { "($numVer,$numEdge)-граф не может быть $conn-связным (min $reqEdgNum рёбер)" }
         }
-        require(genLim > 0) { "Предел генерации должен быть больше 0" }
+        requireG(genLim > 0) { "Предел генерации должен быть больше 0" }
     }
 
     fun build(): Graph {
@@ -46,10 +46,10 @@ class Generator(
 
         var graph: Graph
         var mutableLim = genLim
+
+        logger.debug { "Генерируем граф с именем $namePattern" }
         do {
-            if (mutableLim == 0)
-                throw GraphException("Превышен предел генерации ($genLim). Скорее всего граф с данными параметрами не существует")
-            logger.debug { "Генерируем граф с именем $namePattern" }
+            requireG(mutableLim != 0) { "Превышен предел генерации ($genLim). Скорее всего граф с данными параметрами не существует" }
 
             graph = implementation.invoke(namePattern, numVer)
                 .apply { oriented = isDir }
@@ -86,5 +86,13 @@ class Generator(
         fun minNumEdge(n: Int, k: Int) =
             if (k == 1) n - 1
             else ceil(k * n / 2.0).toInt()
+    }
+}
+
+
+inline fun requireG(value: Boolean, lazyMessage: () -> Any) {
+    if (!value) {
+        val message = lazyMessage()
+        throw GraphException(message.toString())
     }
 }
