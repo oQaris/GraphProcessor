@@ -1,5 +1,6 @@
 package algorithm
 
+import algorithm.thesis.NegativeWeightedStrategy
 import algorithm.thesis.UnweightedStrategy
 import algorithm.thesis.WeightedStrategy
 import algorithm.thesis.findSpanningKConnectedSubgraph
@@ -58,9 +59,9 @@ internal class CourseworkTest {
     @Test
     fun fullNkTest() {
         for (n in 5..10) {
-            val graph = Generator(n, p = 1f, weights = -1..5).build()
+            val graph = Generator(n, p = 1f, weights = -2..5).build()
             println(graph)
-            val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy())
+            val res = findSpanningKConnectedSubgraph(graph, 3, strategy = NegativeWeightedStrategy())
             println(res.answer)
             checkMinWeightWithConn(res.answer, 3)
         }
@@ -73,7 +74,7 @@ internal class CourseworkTest {
     ) {
         assertEquals(k, connectivity(g, localConnectivity)) { "Граф не $k-связен!" }
         g.getEdges().forEach {
-            if (g.getWeightEdg(it)!! >= 0) {
+            if (g.getWeightEdg(it)!! > 0) {
                 val gCpy = AdjacencyMatrixGraph(g)
                 gCpy.remEdg(it)
                 assertTrue(
@@ -89,17 +90,16 @@ internal class CourseworkTest {
         val sfg = SetFileGraph()
         val graph = sfg["textX"]
         println(graph)
-
-        val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy())
+        val res = findSpanningKConnectedSubgraph(graph, 3, strategy = NegativeWeightedStrategy())
+        // должен удалиться 0-4 и 1-3 или 0-1 и 3-4
         println(res.answer)
         checkMinWeightWithConn(res.answer, 3)
 
-        assertEquals(graph, res.answer)
-
-        assertEquals(3, edgeConnectivity(graph))
-        assertEquals(3, edgeConnectivity(graph))
-        assertEquals(1, graph.getWeightEdg(0, 6))
-        graph.remEdg(0, 6)
-        assertEquals(2, edgeConnectivity(graph))
+        val graph2 = sfg["textX"]
+        println(graph2)
+        val res2 = findSpanningKConnectedSubgraph(graph2, 3, strategy = NegativeWeightedStrategy())
+        // должен удалиться 0-5
+        println(res2.answer)
+        checkMinWeightWithConn(res2.answer, 3)
     }
 }

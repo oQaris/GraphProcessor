@@ -71,3 +71,37 @@ class WeightedStrategy : Strategy {
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
             .reversed())
 }
+
+class NegativeWeightedStrategy : Strategy {
+    override fun record(graph: Graph) = graph.sumWeights
+
+    override fun evaluate(sub: Subgraph): Int {
+        val weights = sub.graph.getEdges()
+            .map { sub.graph.getWeightEdg(it)!! }
+
+        val allNegs = weights.filter { it < 0 }
+
+        val addEdgesCount = (Generator.minNumEdge(sub.graph.numVer, sub.k) - allNegs.size)
+            .let { if (it < 0) 0 else it }
+
+        val reqMinWeight = allNegs.sum() +
+                weights.minus(allNegs.toSet())
+                    .sortedBy { it }
+                    .take(addEdgesCount)
+                    .sum()
+
+        val curMinWeight = sub.graph.getEdges()
+            .minus(sub.rawEdges.toSet())
+            .map { sub.graph.getWeightEdg(it)!! }
+            .minus(allNegs.toSet())
+            .sum() + allNegs.sum()
+
+        return max(reqMinWeight, curMinWeight)
+    }
+
+    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
+        compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
+            .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+            .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
+            .reversed())
+}

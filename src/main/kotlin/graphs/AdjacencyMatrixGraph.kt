@@ -21,7 +21,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
 
     private lateinit var data: Array<Array<Int?>>
 
-    override var numVer: Int = 0
+    override val numVer: Int
         get() = data.size
 
     override var numEdg: Int = 0
