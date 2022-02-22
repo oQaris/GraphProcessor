@@ -53,7 +53,7 @@ class Generator(
 
             graph = implementation.invoke(namePattern, numVer)
                 .apply { oriented = isDir }
-                .apply { if (withGC) withGC() }
+                .apply { if (withGC) withGC(weights) }
                 .addEdge(numEdge - (if (withGC) numVer else 0), weights)
 
             mutableLim--
@@ -73,12 +73,12 @@ class Generator(
             .forEach { addEdg(it, weightRange.random()) }
     }
 
-    private fun Graph.withGC() = apply {
+    private fun Graph.withGC(weightRange: IntRange) = apply {
         logger.debug { "Создаём Гамильтонов цикл" }
         (0 until numVer).shuffled()
             .run { plus(first()) }
             .zipWithNext()
-            .forEach { addEdg(it) }
+            .forEach { addEdg(it, weightRange.random()) }
     }
 
     companion object {
