@@ -103,39 +103,24 @@ internal class CourseworkDemo {
 
     @Test
     fun `k in full graph`() {
-        val graph29 = Generator(28, p = 1f).build()
-        val graph30 = Generator(29, p = 1f).build()
-        val graph31 = Generator(30, p = 1f).build()
-        val graph32 = Generator(31, p = 1f).build()
-        println("k;29;30;31;32;")
+        val graphs = listOf(
+            Generator(28, p = 1f).build(),
+            Generator(29, p = 1f).build(),
+            Generator(30, p = 1f).build(),
+            Generator(31, p = 1f).build()
+        )
+        println("k;${graphs.joinToString(";") { it.numVer.toString() }};")
         for (k in 1 until 32) {
             val timestamps = mutableListOf<Long>()
-
-            try {
-                val res = findSpanningKConnectedSubgraph(graph29, k)
-                timestamps.add(res.timestamps.get.last())
-            } catch (e: Exception) {
-                timestamps.add(0L)
+            graphs.forEach {
+                try {
+                    val res = findSpanningKConnectedSubgraph(it, k)
+                    timestamps.add(res.timestamps.get.last())
+                } catch (e: Exception) {
+                    timestamps.add(0L)
+                }
             }
-
-            try {
-                val res = findSpanningKConnectedSubgraph(graph30, k)
-                timestamps.add(res.timestamps.get.last())
-            } catch (e: Exception) {
-                timestamps.add(0L)
-            }
-
-            try {
-                val res = findSpanningKConnectedSubgraph(graph31, k)
-                timestamps.add(res.timestamps.get.last())
-            } catch (e: Exception) {
-                timestamps.add(0L)
-            }
-
-            val res = findSpanningKConnectedSubgraph(graph32, k)
-            timestamps.add(res.timestamps.get.last())
-
-            println("$k;${timestamps[0]};${timestamps[1]};${timestamps[2]};${timestamps[3]};")
+            println("$k;${timestamps.joinToString(";")};")
         }
     }
 
