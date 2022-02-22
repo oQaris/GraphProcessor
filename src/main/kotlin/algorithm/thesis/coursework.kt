@@ -22,7 +22,8 @@ fun findSpanningKConnectedSubgraph(
     g: Graph,
     k: Int,
     localConnectivity: LocalConnectivity = ::localEdgeConnectivity,
-    strategy: Strategy = UnweightedStrategy()
+    strategy: Strategy = UnweightedStrategy(),
+    signs: List<(Int, Int) -> Boolean> = listOf({ a, b -> a > b }, { a, b -> a <= b }, { a, b -> a <= b })
 ): Result {
 
     require(k > 0)
@@ -49,7 +50,9 @@ fun findSpanningKConnectedSubgraph(
         while (leaves.isNotEmpty()) {
             val curElem = leaves.pollFirst()!!
 
-            if (curElem.score >= rec)
+            // >= or >
+            //if (curElem.score > rec)
+            if (signs[0](curElem.score, rec))
                 break
 
             val (curG, rawEdges) = curElem
@@ -72,18 +75,22 @@ fun findSpanningKConnectedSubgraph(
                 logger.debug { "Оценка получившегося графа ${newElem.score}" }
 
                 val newRec = strategy.record(newG)
-                if (newRec < rec) {
+                // < or <=
+                //if (newRec <= rec) {
+                if (signs[1](newRec, rec)) {
                     rec = newRec
                     logger.info { "Теперь рекорд $rec" }
                     minG = newG
                     timestamps.make()
                     leaves.removeIf { it.score >= rec }
                 }
-                if (newElem.score < rec && !leaves.add(newElem))
+                // < or <=
+                if (signs[2](newElem.score, rec)/*newElem.score <= rec*/ && !leaves.add(newElem))
                     throw IllegalArgumentException("Внутренняя ошибка №1")
             }
             curElem.updateScore()
             curElem.order = ++order
+            // <
             if (curElem.score < rec && !leaves.add(curElem))
                 throw IllegalArgumentException("Внутренняя ошибка №2")
         }
