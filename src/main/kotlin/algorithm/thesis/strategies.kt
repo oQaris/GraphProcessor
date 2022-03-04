@@ -19,10 +19,10 @@ interface Strategy {
      * чем ниже оценка, тем раньше он обработается (т.к. задача минимизации).
      * Если все оценки больше или равны рекорду - завершение работы
      */
-    fun evaluate(sub: Subgraph) = Int.MIN_VALUE
+    fun evaluate(sub: Node) = Int.MIN_VALUE
 
     /**
-     * Задаёт порядок сохранения рёбер в графе (т.е. удаляются с конца)
+     * Задаёт порядок удаления рёбер в графе
      */
     fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph)
 
@@ -33,10 +33,10 @@ interface Strategy {
     val reSort: Boolean get() = true
 }
 
-class UnweightedStrategy : Strategy {
+open class UnweightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.numEdg
 
-    override fun evaluate(sub: Subgraph) =
+    override fun evaluate(sub: Node) =
         max(
             Generator.minNumEdge(sub.graph.numVer, sub.k),
             sub.graph.numEdg - sub.rawEdges.size
@@ -53,7 +53,7 @@ class UnweightedStrategy : Strategy {
 class WeightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.sumWeights
 
-    override fun evaluate(sub: Subgraph): Int {
+    override fun evaluate(sub: Node): Int {
         val reqMinWeight = sub.graph.getEdges()
             .map { sub.graph.getWeightEdg(it)!! }
             .sortedBy { it }
@@ -75,7 +75,7 @@ class WeightedStrategy : Strategy {
 class NegativeWeightedStrategy : Strategy {
     override fun record(graph: Graph) = graph.sumWeights
 
-    override fun evaluate(sub: Subgraph): Int {
+    override fun evaluate(sub: Node): Int {
         val weights = sub.graph.getEdges()
             .map { sub.graph.getWeightEdg(it)!! }
 

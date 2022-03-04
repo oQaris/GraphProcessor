@@ -2,10 +2,7 @@ package utils
 
 import kotlin.math.abs
 
-class TimeMeter {
-    private val times = mutableListOf<Long>()
-
-    fun addTimestamp(time: Long) = times.add(time)
+class TimeMeter(private val times: List<Long>) {
 
     /** @return Среднее арифметическое временных меток */
     fun getMean(): Long {

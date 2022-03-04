@@ -61,5 +61,5 @@ internal class TimeMeterTest {
         time4.printGraph(10)
     }
 
-    private fun newTimeMeter(vararg timestamps: Long) = TimeMeter().apply { timestamps.forEach { addTimestamp(it) } }
+    private fun newTimeMeter(vararg times: Long) = TimeMeter(times.toList())
 }

@@ -1,9 +1,9 @@
-package algorithm
+package algorithm.thesis
 
-import algorithm.thesis.NegativeWeightedStrategy
-import algorithm.thesis.UnweightedStrategy
-import algorithm.thesis.WeightedStrategy
-import algorithm.thesis.findSpanningKConnectedSubgraph
+import algorithm.LocalConnectivity
+import algorithm.connectivity
+import algorithm.localEdgeConnectivity
+import algorithm.localVertexConnectivity
 import com.github.shiguruikai.combinatoricskt.permutationsWithRepetition
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
