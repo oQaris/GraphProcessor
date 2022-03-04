@@ -5,7 +5,7 @@ import java.util.*
 /**
  * Реализация графа на базе матрицы смежности
  */
-class AdjacencyMatrixGraph(override var name: String) : Graph {
+class AdjacencyMatrixGraph(override val name: String) : Graph {
     override var oriented: Boolean = false
         set(value) {
             if (field && !value)
@@ -21,7 +21,7 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
 
     private lateinit var data: Array<Array<Int?>>
 
-    override var numVer: Int = 0
+    override val numVer: Int
         get() = data.size
 
     override var numEdg: Int = 0
@@ -31,21 +31,6 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     private fun initCashes() {
         numEdg = getPairVer().count { (i, j) -> data[i][j] != null }
         sumWeights = getEdges().sumOf { (i, j) -> data[i][j]!! }
-    }
-
-    //todo избавиться от дублирования кода как то
-    private fun <T> checkSize(srcData: List<List<T>>) {
-        require(srcData.isNotEmpty()) { ERR_SIZE_EM }
-        srcData.forEach {
-            require(srcData.size == it.size) { ERR_SIZE_SQ }
-        }
-    }
-
-    private fun <T> checkSize(srcData: Array<Array<T>>) {
-        require(srcData.isNotEmpty()) { ERR_SIZE_EM }
-        srcData.forEach {
-            require(srcData.size == it.size) { ERR_SIZE_SQ }
-        }
     }
 
     constructor(name: String, size: Int) : this(name) {
@@ -113,8 +98,11 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
     override fun addEdg(u: Int, v: Int, weight: Int) {
         checkCorrectVer(u, v)
 
-        if (data[u][v] == null) numEdg++
-        else sumWeights += data[u][v]!! - weight
+        sumWeights +=
+            if (data[u][v] == null) {
+                numEdg++
+                weight
+            } else data[u][v]!! - weight
 
         data[u][v] = weight
         if (!oriented) data[v][u] = weight
@@ -179,28 +167,27 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
 
     override fun remEdg(u: Int, v: Int) {
         checkCorrectVer(u, v)
-
         if (data[u][v] != null) {
-            numEdg++
+            numEdg--
             sumWeights -= data[u][v]!!
         }
-
-        if (oriented) data[u][v] = null
-        else {
-            data[u][v] = null
-            data[v][u] = null
-        }
+        data[u][v] = null
+        if (!oriented) data[v][u] = null
     }
 
     // Не менять, используется парсером
     override fun toString(): String {
         val sb = StringBuilder()
-        val size = numVer
-        sb.append(name).append(": ").append(size)
-        sb.append("\n")
-        for (i in 0 until size) {
-            for (j in 0 until size) sb.append(if (isCom(i, j)) getWeightEdg(i, j) else "-").append(" ")
-            sb.append("\n")
+        sb.append(":").append(name).append(":")
+        sb.append(System.lineSeparator())
+        for (i in 0 until numVer) {
+            for (j in 0 until numVer)
+                sb.append(
+                    if (isCom(i, j))
+                        getWeightEdg(i, j).toString()
+                    else "-"
+                ).append(" ")
+            sb.append(System.lineSeparator())
         }
         return sb.toString()
     }
@@ -228,6 +215,17 @@ class AdjacencyMatrixGraph(override var name: String) : Graph {
             for (i in src.indices)
                 System.arraycopy(src[i], 0, target[i], 0, src[i].size)
             return target
+        }
+
+        private fun <T> checkSize(srcData: Array<Array<T>>) {
+            checkSize(srcData.asList().map { it.asList() })
+        }
+
+        private fun <T> checkSize(srcData: List<List<T>>) {
+            require(srcData.isNotEmpty())
+            srcData.forEach {
+                require(srcData.size == it.size)
+            }
         }
     }
 }

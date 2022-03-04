@@ -4,7 +4,7 @@ interface Graph {
     /**
      * Имя графа
      */
-    var name: String
+    val name: String
 
     /**
      * Если граф ориентированный, равна true, иначе - false
@@ -14,12 +14,12 @@ interface Graph {
     /**
      * Количество вершин
      */
-    var numVer: Int
+    val numVer: Int
 
     /**
      * Количество рёбер
      */
-    var numEdg: Int
+    val numEdg: Int
 
     /**
      * Добавить указанное количество вершин в граф
