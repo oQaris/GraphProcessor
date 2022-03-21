@@ -3,7 +3,7 @@ package algorithm.thesis
 import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
-import graphs.AdjacencyMatrixGraph
+import graphs.EdgeListGraph
 import graphs.Graph
 import mu.KotlinLogging
 import utils.Timestamps
@@ -66,7 +66,7 @@ fun findSpanningKConnectedSubgraph(
 
             if (localConnectivity(curG, edge.first, edge.second) > k) {
 
-                val newG = AdjacencyMatrixGraph(curG).apply { remEdg(edge); ++order }
+                val newG = EdgeListGraph(curG).apply { remEdg(edge); ++order }
 
                 logger.debug { "Удалили ребро $edge у графа ${order}. Нефиксированные рёбра: ${curElem.rawEdges}" }
                 val newElem = Subgraph(

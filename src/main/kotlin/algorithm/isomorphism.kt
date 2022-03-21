@@ -3,7 +3,6 @@ package algorithm
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 
-
 fun planarity(g: Graph): Boolean {
     throw UnsupportedOperationException("Эта функция ещё в разработке...")
     //todo найти подграфы изоморфные k33 или k5

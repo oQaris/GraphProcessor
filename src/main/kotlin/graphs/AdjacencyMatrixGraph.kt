@@ -1,5 +1,6 @@
 package graphs
 
+import graphs.GraphException.Companion.ERR_SIZE_SQ
 import java.util.*
 
 /**
@@ -159,6 +160,8 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
         return out
     }
 
+    override fun clone() = AdjacencyMatrixGraph(this)
+
     override fun remVer(ver: Int) {
         checkCorrectVer(ver)
         for (i in data.indices) for (j in data.indices) if (i == ver || j == ver) data[i][j] = null
@@ -207,8 +210,6 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     }
 
     companion object {
-        val ERR_SIZE_EM = "The adjacency matrix of a graph must not be empty."
-        val ERR_SIZE_SQ = "The adjacency matrix of the graph must be square."
 
         private fun cloneArray(src: Array<Array<Int?>>): Array<Array<Int?>> {
             val target = Array<Array<Int?>>(src.size) { arrayOfNulls(src[0].size) }
@@ -217,11 +218,11 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
             return target
         }
 
-        private fun <T> checkSize(srcData: Array<Array<T>>) {
+        fun <T> checkSize(srcData: Array<Array<T>>) {
             checkSize(srcData.asList().map { it.asList() })
         }
 
-        private fun <T> checkSize(srcData: List<List<T>>) {
+        fun <T> checkSize(srcData: List<List<T>>) {
             require(srcData.isNotEmpty())
             srcData.forEach {
                 require(srcData.size == it.size)

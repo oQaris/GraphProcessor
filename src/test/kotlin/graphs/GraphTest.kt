@@ -2,7 +2,7 @@ package graphs
 
 import org.junit.jupiter.api.Test
 
-internal class AdjacencyMatrixGraphTest {
+internal class GraphTest {
 
     @Test
     fun getOrientedTest() {

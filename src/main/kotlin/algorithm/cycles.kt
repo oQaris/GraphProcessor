@@ -1,6 +1,5 @@
 package algorithm
 
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import java.util.*
 
@@ -112,7 +111,7 @@ fun hamiltonCycle(g: Graph, start: Int, cycle: Boolean, tree: Boolean): List<Int
  * @return Список вершин, содержащий Эйлеров цикл
  */
 fun eulerCycle(g: Graph, start: Int): LinkedList<Int> {
-    val gCpy = AdjacencyMatrixGraph(g)
+    val gCpy = g.clone()
     val st = LinkedList<Int>()
     val ec = LinkedList<Int>()
     var curV = start - 1

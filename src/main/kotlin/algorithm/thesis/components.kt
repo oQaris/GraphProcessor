@@ -1,6 +1,5 @@
 package algorithm.thesis
 
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import utils.Timestamps
 import kotlin.properties.Delegates
@@ -119,7 +118,7 @@ class EconomicalSubgraph(
             }
     }
 
-    private fun genGraph() = AdjacencyMatrixGraph(originalGraph)
+    private fun genGraph() = originalGraph.clone()
         .apply {
             remEdges.forEach { remEdg(it) }
         }

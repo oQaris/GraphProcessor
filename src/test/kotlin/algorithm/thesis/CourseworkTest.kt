@@ -5,7 +5,6 @@ import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import algorithm.localVertexConnectivity
 import com.github.shiguruikai.combinatoricskt.permutationsWithRepetition
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import graphs.GraphException
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -119,7 +118,7 @@ internal class CourseworkTest {
                 if (!isConsiderZeroEdges && weightEdg == 0)
                     continue
 
-                val gCpy = AdjacencyMatrixGraph(g)
+                val gCpy = g.clone()
                 gCpy.remEdg(edg)
                 requireG(connectivity(gCpy, localConnectivity) < k)
                 { "Граф $g не минимальный! Можно удалить ребро $edg" }

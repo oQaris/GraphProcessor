@@ -28,7 +28,7 @@ class SetFileGraph(
             .asSequence() // TODO: Провести тесты на скорость
             .filter { it.isNotBlank() }
             .chunked(2)
-            .map { parseAdjacencyMatrix(it[0], it[1]) }
+            .map { parse(it[0], it[1]) }
             .forEach { map[it.name] = it }
     }
 

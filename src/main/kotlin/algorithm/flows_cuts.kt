@@ -1,6 +1,5 @@
 package algorithm
 
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 
 data class AugmentingPath(val value: Int, val path: List<Int>)
@@ -11,8 +10,8 @@ fun <A, B> Pair<A, B>.inv() = second to first
 fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
     require(start != end) { "The vertices must be different." }
     var b = 0                           // Величина потока
-    val flow = AdjacencyMatrixGraph(g)  // Поток
-    val copy = AdjacencyMatrixGraph(g)  // Остаточная сеть
+    val flow = g.clone()  // Поток
+    val copy = g.clone()  // Остаточная сеть
     flow.oriented = true
     copy.oriented = true
     val out = ArrayList<AugmentingPath>(g.numVer)   // Список увеличивающих путей
