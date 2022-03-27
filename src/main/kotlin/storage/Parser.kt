@@ -1,7 +1,7 @@
 package storage
 
-import graphs.EdgeListGraph
 import graphs.Graph
+import graphs.impl.EdgeListGraph
 
 private val noEdgeTokens = setOf("-" /*"0"*/)
 private val pattern = "(-?\\d+)|${noEdgeTokens.joinToString("|")}".toRegex()

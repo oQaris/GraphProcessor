@@ -1,5 +1,6 @@
-package graphs
+package graphs.impl
 
+import graphs.*
 import graphs.GraphException.Companion.ERR_SIZE_SQ
 import java.util.*
 
@@ -9,8 +10,8 @@ import java.util.*
 class AdjacencyMatrixGraph(override val name: String) : Graph {
     override var oriented: Boolean = false
         set(value) {
-            if (field && !value)
             // делаем неориентированным
+            if (field && !value)
                 getPairVer().forEach { (i, j) ->
                     val dIJ = data[i][j] ?: Int.MIN_VALUE
                     val dJI = data[j][i] ?: Int.MIN_VALUE
@@ -150,11 +151,12 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
         return com
     }
 
-    override fun getEdges(): MutableList<Pair<Int, Int>> {
-        val out: MutableList<Pair<Int, Int>> = ArrayList()
+    override fun getEdges(): MutableList<Edge> {
+        val out: MutableList<Edge> = ArrayList()
         for (i in data.indices) {
             for (j in (if (oriented) 0 else i + 1) until data.size) {
-                if (isCom(i, j)) out.add(i to j)
+                if (isCom(i, j))
+                    out.add(i edg j w data[i][j]!!)
             }
         }
         return out
@@ -164,7 +166,10 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
 
     override fun remVer(ver: Int) {
         checkCorrectVer(ver)
-        for (i in data.indices) for (j in data.indices) if (i == ver || j == ver) data[i][j] = null
+        for (i in data.indices)
+            for (j in data.indices)
+                if (i == ver || j == ver)
+                    data[i][j] = null
         initCashes()
     }
 
@@ -207,26 +212,5 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
         var result = Objects.hash(name, data.size, oriented)
         result = 31 * result + data.contentDeepHashCode()
         return result
-    }
-
-    companion object {
-
-        private fun cloneArray(src: Array<Array<Int?>>): Array<Array<Int?>> {
-            val target = Array<Array<Int?>>(src.size) { arrayOfNulls(src[0].size) }
-            for (i in src.indices)
-                System.arraycopy(src[i], 0, target[i], 0, src[i].size)
-            return target
-        }
-
-        fun <T> checkSize(srcData: Array<Array<T>>) {
-            checkSize(srcData.asList().map { it.asList() })
-        }
-
-        fun <T> checkSize(srcData: List<List<T>>) {
-            require(srcData.isNotEmpty())
-            srcData.forEach {
-                require(srcData.size == it.size)
-            }
-        }
     }
 }

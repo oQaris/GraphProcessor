@@ -1,5 +1,6 @@
 package algorithm.thesis
 
+import graphs.Edge
 import graphs.Graph
 import storage.Generator
 import kotlin.math.max
@@ -24,7 +25,7 @@ interface Strategy {
     /**
      * Задаёт порядок удаления рёбер в графе
      */
-    fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph)
+    fun sortEdges(edges: MutableList<Edge>, graph: Graph)
 
     /**
      * Указывает, нужна ли пересортировка с помощью `sortEdges`
@@ -42,8 +43,8 @@ open class UnweightedStrategy : Strategy {
             sub.graph.numEdg - sub.rawEdges.size
         )
 
-    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-        compareBy<Pair<Int, Int>> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+    override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+        compareBy<Edge> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
             .reversed())
 
@@ -55,18 +56,18 @@ class WeightedStrategy : Strategy {
 
     override fun evaluate(sub: Node): Int {
         val reqMinWeight = sub.graph.getEdges()
-            .map { sub.graph.getWeightEdg(it)!! }
+            .map { it.weight }
             .sortedBy { it }
             .take(Generator.minNumEdge(sub.graph.numVer, sub.k))
             .sumOf { it }
         val curMinWeight = sub.graph.getEdges()
             .minus(sub.rawEdges.toSet())
-            .sumOf { sub.graph.getWeightEdg(it)!! }
+            .sumOf { it.weight }
         return max(reqMinWeight, curMinWeight)
     }
 
-    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-        compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
+    override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+        compareBy<Edge> { it.weight }
             .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
             .reversed())
@@ -77,7 +78,7 @@ class NegativeWeightedStrategy : Strategy {
 
     override fun evaluate(sub: Node): Int {
         val weights = sub.graph.getEdges()
-            .map { sub.graph.getWeightEdg(it)!! }
+            .map { it.weight }
 
         val allNegs = weights.filter { it < 0 }
 
@@ -92,15 +93,15 @@ class NegativeWeightedStrategy : Strategy {
 
         val curMinWeight = sub.graph.getEdges()
             .minus(sub.rawEdges.toSet())
-            .map { sub.graph.getWeightEdg(it)!! }
+            .map { it.weight }
             .minus(allNegs.toSet())
             .sum() + allNegs.sum()
 
         return max(reqMinWeight, curMinWeight)
     }
 
-    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-        compareBy<Pair<Int, Int>> { graph.getWeightEdg(it) }
+    override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+        compareBy<Edge> { it.weight }
             .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
             .reversed())

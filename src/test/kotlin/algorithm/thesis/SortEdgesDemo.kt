@@ -1,11 +1,13 @@
 package algorithm.thesis
 
-
+import graphs.Edge
 import graphs.Graph
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
 import kotlin.math.min
 
+@Disabled
 internal class SortEdgesDemo {
 
     @Test
@@ -25,8 +27,8 @@ internal class SortEdgesDemo {
                         override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = Unit
                     })*/
                     1 -> alg(object : UnweightedStrategy() {
-                        override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-                            compareBy<Pair<Int, Int>> { (u, v) -> graph.deg(u) + graph.deg(v) }
+                        override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+                            compareBy<Edge> { (u, v) -> graph.deg(u) + graph.deg(v) }
                                 .reversed())
                     })
                     /*2 -> alg(object : UnweightedStrategy() {
@@ -35,8 +37,8 @@ internal class SortEdgesDemo {
                                 *//*.reversed()*//*)
                     })*/
                     3 -> alg(object : UnweightedStrategy() {
-                        override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-                            compareBy<Pair<Int, Int>> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
+                        override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+                            compareBy<Edge> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
                                 .reversed())
                     })
                     /*4 -> findSpanningKConnectedSubgraph2(
@@ -55,8 +57,8 @@ internal class SortEdgesDemo {
         fun alg(graph: Graph, isResort: Boolean): Long =
             findSpanningKConnectedSubgraph(
                 graph, 3, strategy = object : UnweightedStrategy() {
-                    override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-                        compareBy<Pair<Int, Int>> { (u, v) -> graph.deg(u) + graph.deg(v) }
+                    override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+                        compareBy<Edge> { (u, v) -> graph.deg(u) + graph.deg(v) }
                             .reversed())
 
                     override val reSort: Boolean

@@ -5,17 +5,25 @@ data class Edge(
     val second: Int,
     val weight: Int
 ) {
-
-    /**
-     * Returns string representation of the [Edge] including its [first] and [second] values.
-     */
     override fun toString(): String = "($first, $second)"
 
+    /**
+     * Меняет направление ребра
+     */
     fun revert() = Edge(second, first, weight)
 }
 
-infix fun Int.edg(that: Int) = Edge(this, that, 0)
+/**
+ * Создаёт новое ребро, соединяющее две вершины. Вес по-умолчанию равен 1.
+ */
+infix fun Int.edg(that: Int) = Edge(this, that, 1)
 
+/**
+ * Меняет вес созданного ребра.
+ */
 infix fun Edge.w(weight: Int) = Edge(first, second, weight)
 
+/**
+ * Преобразует пару вершин в ребро с заданным весом
+ */
 infix fun Pair<Int, Int>.toEdge(weight: Int) = Edge(first, second, weight)

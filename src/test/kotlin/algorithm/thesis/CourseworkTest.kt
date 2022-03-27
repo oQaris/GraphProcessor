@@ -112,7 +112,7 @@ internal class CourseworkTest {
     ) {
         requireG(connectivity(g, localConnectivity) >= k) { "Граф не $k-связен!" }
         for (edg in g.getEdges()) {
-            val weightEdg = g.getWeightEdg(edg)!!
+            val weightEdg = edg.weight
 
             if (weightEdg >= 0) {
                 if (!isConsiderZeroEdges && weightEdg == 0)

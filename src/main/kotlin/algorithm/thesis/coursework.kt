@@ -3,8 +3,8 @@ package algorithm.thesis
 import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
-import graphs.EdgeListGraph
 import graphs.Graph
+import graphs.impl.EdgeListGraph
 import mu.KotlinLogging
 import utils.Timestamps
 import java.util.*
