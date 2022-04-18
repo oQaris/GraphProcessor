@@ -1,11 +1,13 @@
 package algorithm.thesis
 
 import graphs.Graph
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
 import kotlin.math.max
 import kotlin.math.min
 
+@Disabled
 internal class SortEdgesDemo {
 
     @Test
