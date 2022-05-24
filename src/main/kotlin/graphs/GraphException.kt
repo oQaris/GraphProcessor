@@ -1,6 +1,6 @@
 package graphs
 
-class GraphException(s: String) : RuntimeException(s) {
+open class GraphException(s: String) : RuntimeException(s) {
 
     companion object {
         val ERR_SIZE_EM = "The adjacency matrix of a graph must not be empty."

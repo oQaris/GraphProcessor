@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>C:/Users/oQaris/Desktop/Git/GraphProcessor/src/main/kotlin</OriginalElement>
+  <nodes>
+    <node x="142.96975292725335" y="866.8200101418829">storage.Generator</node>
+    <node x="0.0" y="502.22683420565045">algorithm.thesis.EconomicalSubgraph</node>
+    <node x="553.0703476001985" y="776.4856194871934">storage.SetFileGraph</node>
+    <node x="308.1935721238715" y="714.0978344010664">algorithm.thesis.Subgraph</node>
+    <node x="184.0" y="1307.5318131880867">storage.GeneratorKt</node>
+    <node x="542.18406868524" y="1137.0352391358147">graphs.impl.EdgeListGraph</node>
+    <node x="277.0966472009287" y="374.9779279367426">algorithm.thesis.UnweightedStrategy</node>
+    <node x="1152.7205353084355" y="0.0">algorithm.FlowResult</node>
+    <node x="114.58295395208467" y="1061.7802841043194">graphs.GraphException</node>
+    <node x="621.2273070266882" y="952.947202519752">algorithm.thesis.Result</node>
+    <node x="254.56819399408965" y="574.7547245029511">algorithm.thesis.Node</node>
+    <node x="1364.0830264834162" y="0.0">algorithm.AugmentingPath</node>
+    <node x="802.4349962464354" y="955.0390284799124">utils.Timestamps</node>
+    <node x="538.9237785643688" y="71.93468087844508">algorithm.thesis.NegativeWeightedStrategy</node>
+    <node x="0.0" y="1307.5318131880867">console.CommandsKt</node>
+    <node x="359.0" y="1307.5318131880867">console.ConstantsKt</node>
+    <node x="250.4346106741344" y="0.0">algorithm.thesis.WeightedStrategy</node>
+    <node x="387.9487477376756" y="950.0509315568061">graphs.Graph</node>
+    <node x="386.07836258743276" y="189.28134416837338">algorithm.thesis.Strategy</node>
+    <node x="985.7205353084355" y="957.0973068461943">utils.TimeMeter</node>
+    <node x="283.74733206083397" y="1233.5318131880867">graphs.impl.AdjacencyMatrixGraph</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="algorithm.thesis.UnweightedStrategy" target="algorithm.thesis.Node" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="383.776611328125" y="507.2484436035156" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.NegativeWeightedStrategy" target="algorithm.thesis.Strategy" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="575.5877685546875" y="198.94435119628906" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Result" target="utils.Timestamps" relationship="TO_ONE">
+      <point x="0.0" y="0.0" />
+      <point x="776.8541259765625" y="922.941162109375" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Subgraph" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="458.0594482421875" y="829.6355590820312" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.UnweightedStrategy" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="545.0409545898438" y="661.1763916015625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Subgraph" target="algorithm.thesis.Strategy" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="270.6818542480469" y="447.8433837890625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="storage.SetFileGraph" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="569.90087890625" y="924.5486450195312" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Node" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="459.33251953125" y="743.1826782226562" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.UnweightedStrategy" target="algorithm.thesis.Strategy" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="357.66339111328125" y="279.38421630859375" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.EconomicalSubgraph" target="algorithm.thesis.Node" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="214.91607666015625" y="502.3486633300781" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.EconomicalSubgraph" target="graphs.Graph" relationship="TO_ONE">
+      <point x="0.0" y="0.0" />
+      <point x="376.1803894042969" y="656.2766723632812" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="utils.Timestamps" target="utils.TimeMeter" relationship="CREATE">
+      <point x="0.0" y="0.0" />
+      <point x="957.5923461914062" y="925.7467041015625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.NegativeWeightedStrategy" target="algorithm.thesis.Node" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="601.7009887695312" y="426.8085632324219" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="storage.SetFileGraph" target="graphs.Graph" relationship="TO_MANY">
+      <point x="0.0" y="0.0" />
+      <point x="569.90087890625" y="924.5486450195312" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.WeightedStrategy" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="621.7044067382812" y="465.14691162109375" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.NegativeWeightedStrategy" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="762.96533203125" y="580.736572265625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="graphs.Graph" target="graphs.GraphException" relationship="CREATE">
+      <point x="0.0" y="0.0" />
+      <point x="340.4482116699219" y="1080.632080078125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.WeightedStrategy" target="algorithm.thesis.Node" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="460.4400634765625" y="311.21893310546875" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="graphs.impl.EdgeListGraph" target="graphs.Graph" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="477.3203125" y="1103.6019287109375" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="storage.SetFileGraph" target="graphs.GraphException" relationship="CREATE">
+      <point x="0.0" y="0.0" />
+      <point x="477.40032958984375" y="1040.6297607421875" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Result" target="graphs.Graph" relationship="TO_ONE">
+      <point x="0.0" y="0.0" />
+      <point x="558.3639526367188" y="1029.068603515625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.FlowResult" target="algorithm.AugmentingPath" relationship="TO_MANY">
+      <point x="0.0" y="0.0" />
+      <point x="1347.90185546875" y="-43.340606689453125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="storage.Generator" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="337.7669677734375" y="864.940673828125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.EconomicalSubgraph" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="376.1803894042969" y="656.2766723632812" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Subgraph" target="algorithm.thesis.Strategy" relationship="TO_ONE">
+      <point x="0.0" y="0.0" />
+      <point x="270.6818542480469" y="447.8433837890625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.EconomicalSubgraph" target="algorithm.thesis.Strategy" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="188.80282592773438" y="274.4844970703125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.FlowResult" target="algorithm.AugmentingPath" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="1347.90185546875" y="-43.340606689453125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="storage.Generator" target="graphs.Graph" relationship="TO_MANY">
+      <point x="0.0" y="0.0" />
+      <point x="337.7669677734375" y="864.940673828125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Result" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="558.3639526367188" y="1029.068603515625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.WeightedStrategy" target="algorithm.thesis.Strategy" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="434.3268127441406" y="83.35472869873047" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Subgraph" target="algorithm.thesis.Node" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="296.79510498046875" y="675.7076416015625" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Subgraph" target="graphs.Graph" relationship="TO_ONE">
+      <point x="0.0" y="0.0" />
+      <point x="458.0594482421875" y="829.6355590820312" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Result" target="utils.Timestamps" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="776.8541259765625" y="922.941162109375" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.EconomicalSubgraph" target="algorithm.thesis.Strategy" relationship="TO_ONE">
+      <point x="0.0" y="0.0" />
+      <point x="188.80282592773438" y="274.4844970703125" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Strategy" target="graphs.Graph" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="625.9559326171875" y="585.5735473632812" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="graphs.impl.AdjacencyMatrixGraph" target="graphs.Graph" relationship="REALIZATION">
+      <point x="0.0" y="0.0" />
+      <point x="337.4778137207031" y="1093.990966796875" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Strategy" target="algorithm.thesis.Node" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="464.691650390625" y="431.6455383300781" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="algorithm.thesis.Node" target="algorithm.thesis.Strategy" relationship="DEPENDENCY">
+      <point x="0.0" y="0.0" />
+      <point x="271.9549560546875" y="361.3904724121094" />
+      <point x="0.0" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Balloons" zoom="0.8768939393939394" showDependencies="true" x="782.0" y="646.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>Project Files</SCOPE>
+  <VISIBILITY>public</VISIBILITY>
+</Diagram>
+

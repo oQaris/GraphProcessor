@@ -70,7 +70,7 @@ class Generator(
         getPairVer().filterNot { isCom(it) }
             .shuffled()
             .take(count)
-            .apply { require(size == count) { "Слишком много рёбер добавляете (max $size)" } }
+            .apply { requireG(size == count) { "Слишком много рёбер добавляете (max $size)" } }
             .forEach { addEdg(it.toEdge(weightRange.random())) }
     }
 
@@ -90,10 +90,11 @@ class Generator(
     }
 }
 
+class GraphGenerationException(msg: String) : GraphException(msg)
 
 inline fun requireG(value: Boolean, lazyMessage: () -> Any) {
     if (!value) {
         val message = lazyMessage()
-        throw GraphException(message.toString())
+        throw GraphGenerationException(message.toString())
     }
 }

@@ -4,7 +4,6 @@ import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import graphs.Graph
-import graphs.impl.EdgeListGraph
 import mu.KotlinLogging
 import utils.Timestamps
 import java.util.*
@@ -23,21 +22,18 @@ fun findSpanningKConnectedSubgraph(
     g: Graph,
     k: Int,
     localConnectivity: LocalConnectivity = ::localEdgeConnectivity,
-    strategy: Strategy = UnweightedStrategy(),
-    signs: List<(Int, Int) -> Boolean> = listOf({ a, b -> a > b }, { a, b -> a <= b }, { a, b -> a <= b })
+    strategy: Strategy = UnweightedStrategy()
 ): Result {
 
     require(k > 0)
     require(connectivity(g, localConnectivity) >= k) { "The graph must have connectivity >= $k" }
     var rec = strategy.record(g)
     var minG = g
-    var order = 0
     val timestamps = Timestamps()
 
-    val leaves = TreeSet(compareBy<Subgraph> { it.score }
+    val leaves = PriorityQueue(compareBy<Subgraph> { it.score }
         .reversed() // в начале графы с максимальной оценкой
-        .thenBy { it.rawEdges.size }
-        .thenBy { it.order }) // этот костыль нужен чтоб в TreeSet не удалялись графы, которые равны по компаратору
+        .thenBy { it.rawEdges.size })
 
     run {
         val edges = g.getEdges()
@@ -45,17 +41,15 @@ fun findSpanningKConnectedSubgraph(
             strategy.sortEdges(edges, g)
 
         leaves.add(
-            Subgraph(g, k, strategy, edges, order = ++order)
+            Subgraph(g, k, strategy, edges)
                 .apply { logger.debug { "Оценка исходного графа $score" } })
     }
 
     try {
         while (leaves.isNotEmpty()) {
-            val curElem = leaves.pollFirst()!!
+            val curElem = leaves.poll()
 
-            // >= or >
             if (curElem.score >= rec)
-            //if (signs[0](curElem.score, rec))
                 break
 
             val (curG, rawEdges) = curElem
@@ -66,35 +60,28 @@ fun findSpanningKConnectedSubgraph(
 
             if (localConnectivity(curG, edge.first, edge.second) > k) {
 
-                val newG = EdgeListGraph(curG).apply { remEdg(edge); ++order }
+                val newG = curG.clone().apply { remEdg(edge) }
 
-                logger.debug { "Удалили ребро $edge у графа ${order}. Нефиксированные рёбра: ${curElem.rawEdges}" }
+                logger.debug { "Удалили ребро $edge у графа. Нефиксированные рёбра: ${curElem.rawEdges}" }
                 val newElem = Subgraph(
                     newG, k, strategy,
                     unfixedEdges = rawEdges.toMutableList(),
-                    lastRemEdge = edge,
-                    order = order
+                    lastRemEdge = edge
                 )
                 logger.debug { "Оценка получившегося графа ${newElem.score}" }
 
                 val newRec = strategy.record(newG)
-                // < or <=
                 if (newRec < rec) {
-                    //if (signs[1](newRec, rec)) {
                     rec = newRec
                     logger.info { "Теперь рекорд $rec" }
                     minG = newG
                     timestamps.make()
                     leaves.removeIf { it.score >= rec }
                 }
-                // < or <=
-                // signs[2](newElem.score, rec)
                 if (newElem.score < rec && !leaves.add(newElem))
                     throw IllegalArgumentException("Внутренняя ошибка №1")
             }
             curElem.updateScore()
-            curElem.order = ++order
-            // <
             if (curElem.score < rec && !leaves.add(curElem))
                 throw IllegalArgumentException("Внутренняя ошибка №2")
         }
@@ -105,78 +92,6 @@ fun findSpanningKConnectedSubgraph(
     logger.info { "Рекорд: $rec" }
     logger.debug { "Исходный граф: $g" }
     logger.debug { "Получившийся граф: $minG" }
-    timestamps.make()
-    return Result(minG, rec, timestamps)
-}
-
-fun findSpanningKConnectedSubgraphEco(
-    g: Graph,
-    k: Int,
-    localConnectivity: LocalConnectivity = ::localEdgeConnectivity,
-    strategy: Strategy = UnweightedStrategy()
-): Result {
-
-    require(k > 0)
-    require(connectivity(g, localConnectivity) >= k) { "The graph must have connectivity >= $k" }
-    var rec = strategy.record(g)
-    var minG = g
-    var order = 0
-    val timestamps = Timestamps()
-
-    val leaves = TreeSet(compareBy<EconomicalSubgraph> { it.score }
-        .reversed() // в начале графы с максимальной оценкой
-        .thenBy { it.rawEdges.size }
-        .thenBy { it.order }) // этот костыль нужен чтоб в TreeSet не удалялись графы, которые равны по компаратору
-
-    run {
-        val edges = g.getEdges()
-        if (!strategy.reSort)
-            strategy.sortEdges(edges, g)
-        leaves.add(EconomicalSubgraph(g, k, strategy, order = ++order))
-    }
-
-    while (leaves.isNotEmpty()) {
-        val curElem = leaves.pollFirst()!!
-
-        if (curElem.score >= rec)
-            break
-
-        val (curG, rawEdges) = curElem
-        if (rawEdges.isEmpty())
-            continue
-
-        val edge = rawEdges.first()
-
-        if (localConnectivity(curG, edge.first, edge.second) > k) {
-
-            val newElem = EconomicalSubgraph(
-                g, k, strategy,
-                remEdges = curElem.remEdges + edge,
-                fixEdges = curElem.fixEdges.toMutableList(),
-                lastRemEdge = edge,
-                order = ++order
-            )
-
-            val newRec = strategy.record(newElem.graph)
-            if (newRec < rec) {
-                rec = newRec
-                logger.info { "Теперь рекорд $rec" }
-                minG = newElem.graph
-                timestamps.make()
-                leaves.removeIf { it.score >= rec }
-            }
-            if (newElem.score < rec && !leaves.add(newElem))
-                throw IllegalArgumentException("Внутренняя ошибка №1")
-        }
-        val newElem = EconomicalSubgraph(
-            g, k, strategy,
-            remEdges = curElem.remEdges,
-            fixEdges = (curElem.fixEdges + edge).toMutableList(),
-            order = ++order
-        )
-        if (newElem.score < rec && !leaves.add(newElem))
-            throw IllegalArgumentException("Внутренняя ошибка №2")
-    }
     timestamps.make()
     return Result(minG, rec, timestamps)
 }
