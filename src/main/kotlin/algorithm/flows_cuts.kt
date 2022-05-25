@@ -1,7 +1,7 @@
 package algorithm
 
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
+import graphs.toEdge
 
 data class AugmentingPath(val value: Int, val path: List<Int>)
 data class FlowResult(val value: Int, val flow: List<AugmentingPath>)
@@ -11,8 +11,8 @@ fun <A, B> Pair<A, B>.inv() = second to first
 fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
     require(start != end) { "The vertices must be different." }
     var b = 0                           // Величина потока
-    val flow = AdjacencyMatrixGraph(g)  // Поток
-    val copy = AdjacencyMatrixGraph(g)  // Остаточная сеть
+    val flow = g.clone()  // Поток
+    val copy = g.clone()  // Остаточная сеть
     flow.oriented = true
     copy.oriented = true
     val out = ArrayList<AugmentingPath>(g.numVer)   // Список увеличивающих путей
@@ -28,8 +28,8 @@ fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
             // Если в исходном графе нет дуги, по которой проходит увеличивающий путь,
             // то уменьшаем вес симметричной дуги на сигму, если есть - увеличиваем прямую дугу
             if (flow.isCom(it))
-                flow.addEdg(it, (flow.getWeightEdg(it) ?: 0) + delta)
-            else flow.addEdg(it.inv(), (flow.getWeightEdg(it.inv()) ?: 0) - delta)
+                flow.addEdg(it.toEdge((flow.getWeightEdg(it) ?: 0) + delta))
+            else flow.addEdg(it.toEdge((flow.getWeightEdg(it.inv()) ?: 0) - delta).revert())
             // Пересчитываем веса
             val reverseFlow = flow.getWeightEdg(it.inv()) ?: 0
             val newWeightUV = (copy.getWeightEdg(it) ?: 0) - delta + reverseFlow
@@ -38,10 +38,10 @@ fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
             // если вес обратился в 0 - удаляем дугу
             if (newWeightUV == 0)
                 copy.remEdg(it)
-            else copy.addEdg(it, newWeightUV)
+            else copy.addEdg(it.toEdge(newWeightUV))
             if (newWeightVU == 0)
                 copy.remEdg(it.inv())
-            else copy.addEdg(it.inv(), newWeightVU)
+            else copy.addEdg(it.toEdge(newWeightVU).revert())
         }
         out.add(AugmentingPath(delta, path)) // формируем объект со списком и величиной увеличивающего пути
         path = route(copy, start, end) // находим новый увеличивающий путь

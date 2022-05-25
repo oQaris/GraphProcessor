@@ -1,6 +1,5 @@
 package algorithm
 
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import kotlin.math.min
 
@@ -48,7 +47,7 @@ fun connectivity(g: Graph, localConnectivity: ((g: Graph, u: Int, v: Int) -> Int
  * @return Количество вершинно-независимых (s,t)-цепей в графе G.
  */
 fun localVertexConnectivity(g: Graph, s: Int, t: Int): Int {
-    val cpy = AdjacencyMatrixGraph(g)       // Создаём копию графа
+    val cpy = g.clone()       // Создаём копию графа
     redo(cpy) { _, _, _ -> 1 }              // Устанавливаем веса равные единице
     cpy.oriented = true                   // Заменяем рёбра на пару симметричных дуг
     val oldNumVer = cpy.numVer
@@ -76,7 +75,7 @@ fun localVertexConnectivity(g: Graph, s: Int, t: Int): Int {
  * @return Количество рёберно-независимых (s,t)-цепей в графе G=.
  */
 fun localEdgeConnectivity(g: Graph, s: Int, t: Int): Int {
-    val cpy = AdjacencyMatrixGraph(g)   // Создаём копию графа
+    val cpy = g.clone()   // Создаём копию графа
     redo(cpy) { _, _, _ -> 1 }          // Устанавливаем веса равные единице
     cpy.oriented = true               // Заменяем рёбра на пару симметричных дуг
     return maxFlow(cpy, s, t).value     // Возвращаем величину макс. потока в новом графе

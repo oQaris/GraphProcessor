@@ -7,7 +7,7 @@ interface Graph {
     val name: String
 
     /**
-     * Если граф ориентированный, равна true, иначе - false
+     * Если граф ориентированный - true, иначе - false
      */
     var oriented: Boolean
 
@@ -22,7 +22,12 @@ interface Graph {
     val numEdg: Int
 
     /**
-     * Добавить указанное количество вершин в граф
+     * Сумма весов всех рёбер в графе
+     */
+    val sumWeights: Int
+
+    /**
+     * Добавить указанное количество вершин в граф.
      *
      * @param count Количество вершин для добавления
      * @throws GraphException Если число вершин меньше 1
@@ -30,7 +35,7 @@ interface Graph {
     fun addVer(count: Int)
 
     /**
-     * Добавить ребро в граф, либо заменить вес существующего
+     * Добавить ребро в граф, либо заменить вес существующего.
      *
      * @param u Начальная вершина добавляемого ребра
      * @param v Конечная вершина добавляемого ребра
@@ -39,15 +44,14 @@ interface Graph {
     fun addEdg(u: Int, v: Int, weight: Int = 1)
 
     /**
-     * Добавить ребро в граф, либо заменить вес существующего
+     * Добавить ребро в граф, либо заменить вес существующего.
      *
      * @param edge Пара вершин, из которых состоит добавляемое ребро
-     * @param weight Вес добавляемого ребра (1 по-умолчанию)
      */
-    fun addEdg(edge: Pair<Int, Int>, weight: Int = 1) = addEdg(edge.first, edge.second, weight)
+    fun addEdg(edge: Edge) = addEdg(edge.first, edge.second, edge.weight)
 
     /**
-     * Получить вес ребра UV
+     * Получить вес ребра UV.
      *
      * @param u Номер начальной вершины
      * @param v Номер конечной вершины
@@ -56,7 +60,7 @@ interface Graph {
     fun getWeightEdg(u: Int, v: Int): Int?
 
     /**
-     * Получить вес ребра
+     * Получить вес ребра.
      *
      * @param edge Пара смежных вершин
      * @return null при отсутствии ребра UV
@@ -64,7 +68,7 @@ interface Graph {
     fun getWeightEdg(edge: Pair<Int, Int>) = getWeightEdg(edge.first, edge.second)
 
     /**
-     * Установить вес ребра UV
+     * Установить вес ребра UV.
      *
      * @param u Номер начальной вершины
      * @param v Номер конечной вершины
@@ -78,21 +82,15 @@ interface Graph {
     }
 
     /**
-     * Установить вес ребра
+     * Установить вес ребра.
      *
-     * @param edge Пара смежных вершин
-     * @param weight Вес добавляемого ребра
+     * @param edge Пара смежных вершин и вес полученного ребра
      * @throws GraphException При отсутствии ребра edge
      */
-    fun setWeightEdg(edge: Pair<Int, Int>, weight: Int) = setWeightEdg(edge.first, edge.second, weight)
+    fun setWeightEdg(edge: Edge) = setWeightEdg(edge.first, edge.second, edge.weight)
 
     /**
-     * Получить сумму весов всех рёбер в графе (должна использовать кэширование и выполняться быстро)
-     */
-    var sumWeights: Int
-
-    /**
-     * Полностью удаляет вершину и инцидентные ей рёбра из графа
+     * Удалить инцидентные вершине рёбра из графа.
      *
      * @param ver Вершина, удаляемая из графа
      * @throws GraphException При некорректном значении номера вершины ver
@@ -100,7 +98,7 @@ interface Graph {
     fun remVer(ver: Int)
 
     /**
-     * Удаляет ребро из графа
+     * Удалить ребро из графа.
      *
      * @param u Начальная вершина удаляемого ребра
      * @param v Конечная вершина удаляемого ребра
@@ -109,7 +107,7 @@ interface Graph {
     fun remEdg(u: Int, v: Int)
 
     /**
-     * Удаляет ребро из графа
+     * Удалить ребро из графа.
      *
      * @param edge Пара вершин, из которых состоит удаляемое ребро
      * @throws GraphException При отсутствии ребра edge
@@ -117,7 +115,15 @@ interface Graph {
     fun remEdg(edge: Pair<Int, Int>) = remEdg(edge.first, edge.second)
 
     /**
-     * Узнать степень входа/выхода заданной вершины
+     * Удалить ребро из графа.
+     *
+     * @param edge Удаляемое ребро (вес не учитывается)
+     * @throws GraphException При отсутствии ребра edge
+     */
+    fun remEdg(edge: Edge) = remEdg(edge.first, edge.second)
+
+    /**
+     * Подсчитать степень входа/выхода заданной вершины.
      *
      * @param ver   Номер вершины, для которой вычисляется её степень
      * @param isOut Определяет степень входа/выхода (isOut=true: deg-, isOut=false: deg+)
@@ -126,7 +132,7 @@ interface Graph {
     fun deg(ver: Int, isOut: Boolean): Int
 
     /**
-     * Узнать суммарную степень заданной вершины
+     * Узнать суммарную степень заданной вершины.
      *
      * @param ver Номер вершины, для которой вычисляется её степень
      * @throws GraphException При некорректном значении номера вершины ver
@@ -136,7 +142,7 @@ interface Graph {
     }
 
     /**
-     * Проверяет смежность двух вершин
+     * Проверить смежность двух вершин.
      *
      * @param u Номер первой вершины
      * @param v Номер второй вершины
@@ -147,7 +153,7 @@ interface Graph {
     }
 
     /**
-     * Проверяет существование ребра в графе
+     * Проверить существование ребра в графе.
      *
      * @param edge Пара вершин, для которых проверяется смежность
      * @throws GraphException При некорректных значениях номеров вершин ver1 или ver2
@@ -155,25 +161,25 @@ interface Graph {
     fun isCom(edge: Pair<Int, Int>) = isCom(edge.first, edge.second)
 
     /**
-     * Получить массив смежных вершин
+     * Получить список смежных вершин.
      *
      * @param ver Вершина, относительно которой вычисляются смежные
-     * @return Одномерный массив int, номеров вершин, смежных с данной
+     * @return Список int, номеров вершин, смежных с данной
      * @throws GraphException При некорректном значении номера вершины ver
      */
     fun com(ver: Int): MutableList<Int>
 
     /**
-     * Получить пары смежных вершин (рёбра) графа
+     * Получить список рёбер графа (связанных вершин).
      *
-     * @return Список пар смежных вершин графа
+     * @return Список рёбер в графе
      */
-    fun getEdges(): MutableList<Pair<Int, Int>>
+    fun getEdges(): MutableList<Edge>
 
     /**
      * Получить все возможные пары вершин в графе (различны для обычного графа и орграфа).
      *
-     * @return Список пар всевозможных вершин графа.
+     * @return Список пар всевозможных вершин графа
      */
     fun getPairVer(): MutableList<Pair<Int, Int>> {
         val n = numVer
@@ -185,7 +191,14 @@ interface Graph {
     }
 
     /**
-     * Проверяет, все ли вершины из набора содержатся в данном графе
+     * Создать глубокую копию графа (той же имплементации).
+     *
+     * @return Копия исходного графа
+     */
+    fun clone(): Graph
+
+    /**
+     * Проверяет, все ли вершины из набора содержатся в данном графе.
      *
      * @param vertex Набор вершин для проверки их допустимости в данном графе
      * @throws GraphException Если хотя бы одна вершина из набора не содержится в графе

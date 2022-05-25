@@ -4,6 +4,7 @@ import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import algorithm.localVertexConnectivity
+import com.github.shiguruikai.combinatoricskt.permutationsWithRepetition
 import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -58,6 +59,7 @@ internal class CourseworkTest {
     }
 
     @Test
+    @Disabled
     fun fullNkTest() {
         for (n in 5..10) {
             val graph = Generator(n, p = 1f, weights = -2..5).build()
@@ -80,6 +82,7 @@ internal class CourseworkTest {
     }
 
     @Test
+    @Disabled
     fun textY_zeroNo() {
         val sfg = SetFileGraph()
         val graph2 = sfg["textY"]
@@ -109,17 +112,58 @@ internal class CourseworkTest {
     ) {
         requireG(connectivity(g, localConnectivity) >= k) { "Граф не $k-связен!" }
         for (edg in g.getEdges()) {
-            val weightEdg = g.getWeightEdg(edg)!!
+            val weightEdg = edg.weight
 
             if (weightEdg >= 0) {
                 if (!isConsiderZeroEdges && weightEdg == 0)
                     continue
 
-                val gCpy = AdjacencyMatrixGraph(g)
+                val gCpy = g.clone()
                 gCpy.remEdg(edg)
                 requireG(connectivity(gCpy, localConnectivity) < k)
                 { "Граф $g не минимальный! Можно удалить ребро $edg" }
             }
+        }
+    }
+
+    @Test
+    @Disabled
+    fun signsTest() {
+        val signsAll = listOf<(Int, Int) -> Boolean>(
+            { a, b -> a > b }, { a, b -> a < b }, { a, b -> a >= b }, { a, b -> a <= b })
+
+        val testData = buildList {
+            repeat(5) {
+                val generator = Generator(it + 5, p = 1f, weights = 2..8)
+                repeat(5) {
+                    add(generator.build())
+                }
+            }
+        }
+
+        signs_loop@ for (signs in signsAll.permutationsWithRepetition(3)) {
+
+            val startTime = System.nanoTime()
+            for (graph in testData) {
+                val res = findSpanningKConnectedSubgraph(graph, 3, strategy = WeightedStrategy()/*, signs = signs*/)
+                try {
+                    checkMinWeightWithConn(res.answer, 3, isConsiderZeroEdges = false)
+                } catch (e: GraphException) {
+                    continue@signs_loop
+                }
+            }
+            print(System.nanoTime() - startTime)
+            print(";")
+
+            println(signs.joinToString("") { func ->
+                if (func(1, 2)) {
+                    if (func(1, 1)) "<=;"
+                    else "<;"
+                } else {
+                    if (func(1, 1)) ">=;"
+                    else ">;"
+                }
+            })
         }
     }
 }

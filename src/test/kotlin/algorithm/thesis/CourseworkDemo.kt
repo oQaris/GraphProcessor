@@ -6,9 +6,11 @@ import graphs.Graph
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
+import storage.GraphGenerationException
 import storage.SetFileGraph
-import utils.TimeMeter
+import utils.*
 import java.io.File
+import kotlin.random.Random
 
 @Disabled
 internal class CourseworkDemo {
@@ -57,8 +59,8 @@ internal class CourseworkDemo {
     }
 
     private fun savedTest(id: Int, expCount: Int, isNewDataGen: Boolean, generator: Generator, sfg: SetFileGraph) {
-        val timesList = mutableListOf<Long>()
-        val timesListRec = mutableListOf<Long>()
+        val times = mutableListOf<Long>()
+        val timesRec = mutableListOf<Long>()
 
         repeat(expCount) { numEx ->
             val name = "${id}_${numEx}"
@@ -74,20 +76,18 @@ internal class CourseworkDemo {
 
             val timestamps = findSpanningKConnectedSubgraph(graph, 2).timestamps.get()
 
-            timesList.add(timestamps.last())
+            times.add(timestamps.last())
             if (timestamps.size >= 3)
-                timesListRec.add(timestamps.let { it[it.size - 3] })
+                timesRec.add(timestamps.let { it[it.size - 3] })
         }
         if (isNewDataGen) {
             sfg.push(true)
             sfg.clear()
         }
 
-        val times = TimeMeter(timesList)
-        val timesRec = TimeMeter(timesListRec)
         println(
-            "$id;${times.getMean()};${times.getMode()};${times.getMedian()};${times.getMax()};${times.getMin()};" +
-                    "${timesRec.getMean()};${timesRec.getMode()};${timesRec.getMedian()};${timesRec.getMax()};${timesRec.getMin()};"
+            "$id;${times.mean()};${times.mode()};${times.median()};${times.max()};${times.min()};" +
+                    "${timesRec.mean()};${timesRec.mode()};${timesRec.median()};${timesRec.max()};${timesRec.min()};"
         )
     }
 
@@ -115,10 +115,70 @@ internal class CourseworkDemo {
     }
 
     @Test
-    fun `Comparison of the speed of algorithms with edge and vertex connectivity`() {
-        val g = Generator(16, p = 1f).build()
-        val res = findSpanningKConnectedSubgraph(g, 3, strategy = UnweightedStrategy()).timestamps.getLast()
-        println(res)
+    fun `k in full graph extended`() {
+        val graph = Generator(30, p = 1f).build()
+        println(graph)
+        println("k;rec;prev;ppprev;")
+        for (k in 1 until graph.numVer) {
+            val res = findSpanningKConnectedSubgraph(graph, k)
+            println(
+                "$k;${res.timestamps.getLast()};" +
+                        "${res.timestamps.get().dropLast(1).last()};" +
+                        "${res.timestamps.get().dropLast(2).last()};"
+            )
+        }
+    }
+
+    @Test
+    fun `edge vs vertex connectivity`() {
+        println("edge;vertex")
+        while (true) {
+            val timesListE = mutableListOf<Long>()
+            val timesListV = mutableListOf<Long>()
+
+            val n = (10..25).random()
+            val k = (2..5).random()
+            val p = Random.nextDouble(0.2, 1.0).toFloat()
+
+            try {
+                repeat(4) {
+                    val g = Generator(n, p = p, conn = k).build()
+
+                    val resultE = findSpanningKConnectedSubgraph(
+                        g, k,
+                        localConnectivity = ::localEdgeConnectivity
+                    )
+                    val resultV = findSpanningKConnectedSubgraph(
+                        g, k,
+                        localConnectivity = ::localVertexConnectivity
+                    )
+                    timesListE.add(resultE.timestamps.getLast())
+                    timesListV.add(resultV.timestamps.getLast())
+                }
+            } catch (_: GraphGenerationException) {
+                continue
+            }
+            println("${timesListE.median()};${timesListV.median()}")
+        }
+    }
+
+    @Test
+    fun `Weighted range in full graph`() {
+        val n = 25
+        val k = 3
+
+        println("range;time")
+        for (lim in (2..Generator.maxNumEdge(n))) {
+            val timesList = mutableListOf<Long>()
+
+            repeat(10) {
+                val g = Generator(n, p = 1f, weights = (0..lim)).build()
+                val result = findSpanningKConnectedSubgraph(g, k, strategy = WeightedStrategy())
+                timesList.add(result.timestamps.getLast())
+            }
+
+            println("$lim;${timesList.median()}")
+        }
     }
 
     @Test

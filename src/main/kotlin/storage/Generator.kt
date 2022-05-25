@@ -3,9 +3,10 @@ package storage
 import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
 import graphs.GraphException
+import graphs.impl.AdjacencyMatrixGraph
+import graphs.toEdge
 import mu.KotlinLogging
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -69,8 +70,8 @@ class Generator(
         getPairVer().filterNot { isCom(it) }
             .shuffled()
             .take(count)
-            .apply { require(size == count) { "Слишком много рёбер добавляете (max $size)" } }
-            .forEach { addEdg(it, weightRange.random()) }
+            .apply { requireG(size == count) { "Слишком много рёбер добавляете (max $size)" } }
+            .forEach { addEdg(it.toEdge(weightRange.random())) }
     }
 
     private fun Graph.withGC(weightRange: IntRange) = apply {
@@ -78,7 +79,7 @@ class Generator(
         (0 until numVer).shuffled()
             .run { plus(first()) }
             .zipWithNext()
-            .forEach { addEdg(it, weightRange.random()) }
+            .forEach { addEdg(it.toEdge(weightRange.random())) }
     }
 
     companion object {
@@ -89,10 +90,11 @@ class Generator(
     }
 }
 
+class GraphGenerationException(msg: String) : GraphException(msg)
 
 inline fun requireG(value: Boolean, lazyMessage: () -> Any) {
     if (!value) {
         val message = lazyMessage()
-        throw GraphException(message.toString())
+        throw GraphGenerationException(message.toString())
     }
 }

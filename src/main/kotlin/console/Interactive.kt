@@ -1,6 +1,6 @@
 package console
 
-import graphs.AdjacencyMatrixGraph
+import graphs.impl.AdjacencyMatrixGraph
 import java.util.regex.Pattern
 
 /**

@@ -1,8 +1,7 @@
 package algorithm
 
-import graphs.AdjacencyMatrixGraph
 import graphs.Graph
-
+import graphs.impl.AdjacencyMatrixGraph
 
 fun planarity(g: Graph): Boolean {
     throw UnsupportedOperationException("Эта функция ещё в разработке...")
