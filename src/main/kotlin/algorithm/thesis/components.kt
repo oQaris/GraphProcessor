@@ -13,7 +13,6 @@ interface Node {
     var score: Int
     val strategy: Strategy
     var order: Int
-    //fun updateScore(removedEdge: Pair<Int, Int>? = null)
 
     operator fun component1() = graph
 

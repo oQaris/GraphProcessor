@@ -60,7 +60,6 @@ fun findSpanningKConnectedSubgraph(
             val edge = rawEdges.removeFirst()
 
             if (localConnectivity(curG, edge.first, edge.second) > k) {
-
                 val newG = curG.clone().apply { remEdg(edge) }
 
                 logger.debug { "Удалили ребро $edge у графа. Нефиксированные рёбра: ${curElem.rawEdges}" }

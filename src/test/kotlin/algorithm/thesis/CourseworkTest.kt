@@ -5,8 +5,8 @@ import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import algorithm.localVertexConnectivity
 import com.github.shiguruikai.combinatoricskt.permutationsWithRepetition
+import graphs.AdjacencyMatrixGraph
 import graphs.Graph
-import graphs.GraphException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test

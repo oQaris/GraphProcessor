@@ -5,6 +5,7 @@ import graphs.Graph
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
+import kotlin.math.max
 import kotlin.math.min
 
 @Disabled
@@ -21,29 +22,26 @@ internal class SortEdgesDemo {
                 ).timestamps.getLast()
 
             print("$n;")
-            repeat(5) {
+            repeat(4) {
                 val res: Long = when (it) {
-                    /*0 -> alg(object : UnweightedStrategy() {
+                    0 -> alg(object : UnweightedStrategy() {
                         override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = Unit
-                    })*/
+                    })
                     1 -> alg(object : UnweightedStrategy() {
                         override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
                             compareBy<Edge> { (u, v) -> graph.deg(u) + graph.deg(v) }
                                 .reversed())
                     })
-                    /*2 -> alg(object : UnweightedStrategy() {
+                    2 -> alg(object : UnweightedStrategy() {
                         override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
                             compareBy<Pair<Int, Int>> { (u, v) -> max(graph.deg(u), graph.deg(v)) }
-                                *//*.reversed()*//*)
-                    })*/
+                                .reversed())
+                    })
                     3 -> alg(object : UnweightedStrategy() {
                         override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
                             compareBy<Edge> { (u, v) -> min(graph.deg(u), graph.deg(v)) }
                                 .reversed())
                     })
-                    /*4 -> findSpanningKConnectedSubgraph2(
-                        Generator(n, p = 1f).build(), 3, strategy = UnweightedStrategy()
-                    ).timestamps.getLast()*/
                     else -> 0
                 }
                 print("$res;")
