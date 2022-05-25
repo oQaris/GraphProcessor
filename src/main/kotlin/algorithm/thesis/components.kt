@@ -127,6 +127,6 @@ class EconomicalSubgraph(
 }
 
 /**
- * Возвращаемый результат в `findSpanningKConnectedSubgraph`
+ * Возвращаемый результат в {@link algorithm.thesis.CourseworkKt#findSpanningKConnectedSubgraph(Graph,Int,LocalConnectivity,Strategy)}
  */
 data class Result(val answer: Graph, val rec: Int, val timestamps: Timestamps)

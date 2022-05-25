@@ -11,11 +11,12 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 
 /**
- * Нахождение k-связного остовного подграфа с наименьшим числом ребер.
+ * Нахождение k-связного остовного подграфа минимальной стоимости.
  *
  * @param g                 Исходный граф.
  * @param k                 Связность искомого подграфа.
  * @param localConnectivity Функция определения связности (по умолчанию - рёберная связность).
+ * @param strategy          Стратегия управления методом ветвей и границ
  * @return Подграф заданной связности с минимальным числом рёбер.
  */
 fun findSpanningKConnectedSubgraph(
@@ -26,7 +27,7 @@ fun findSpanningKConnectedSubgraph(
 ): Result {
 
     require(k > 0)
-    require(connectivity(g, localConnectivity) >= k) { "The graph must have connectivity >= $k" }
+    require(connectivity(g, localConnectivity) >= k) { "Исходный граф должен иметь связность не меньше $k" }
     var rec = strategy.record(g)
     var minG = g
     val timestamps = Timestamps()
