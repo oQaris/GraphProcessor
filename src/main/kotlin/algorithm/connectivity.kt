@@ -47,23 +47,23 @@ fun connectivity(g: Graph, localConnectivity: ((g: Graph, u: Int, v: Int) -> Int
  * @return Количество вершинно-независимых (s,t)-цепей в графе G.
  */
 fun localVertexConnectivity(g: Graph, s: Int, t: Int): Int {
-    val cpy = g.clone()       // Создаём копию графа
-    redo(cpy) { _, _, _ -> 1 }              // Устанавливаем веса равные единице
-    cpy.oriented = true                   // Заменяем рёбра на пару симметричных дуг
+    val cpy = g.clone()                           // Создаём копию графа
+    redo(cpy) { _, _, _ -> 1 }                    // Устанавливаем веса равные единице
+    cpy.oriented = true                           // Заменяем рёбра на пару симметричных дуг
     val oldNumVer = cpy.numVer
-    cpy.addVer(oldNumVer - 2)         // Добавляем в граф n-2 вершин
+    cpy.addVer(oldNumVer - 2)               // Добавляем в граф n-2 вершин
     (0 until oldNumVer).minus(setOf(s, t))  // Для каждой из исходных вершин, кроме s и t
         .forEachIndexed { idx, ver ->
             val outVer = cpy.com(ver)
             val newVer = oldNumVer + idx
-            cpy.addEdg(ver, newVer)     // Направляем дугу от i к n+i вершине
+            cpy.addEdg(ver, newVer)               // Направляем дугу от i к n+i вершине
             outVer.forEach {
-                cpy.remEdg(ver, it)     // Переносим все исходящие дуги из i-й вершины
-                cpy.addEdg(newVer, it)  // В n+i-ю вершину
+                cpy.remEdg(ver, it)               // Переносим все исходящие дуги из i-й вершины
+                cpy.addEdg(newVer, it)            // В n+i-ю вершину
             }
             // Все входящие дуги остаются в i-й вершине
         }
-    return maxFlow(cpy, s, t).value         // Возвращаем величину макс. потока в новом графе
+    return maxFlow(cpy, s, t).value             // Возвращаем величину макс. потока в новом графе
 }
 
 /**
@@ -75,8 +75,8 @@ fun localVertexConnectivity(g: Graph, s: Int, t: Int): Int {
  * @return Количество рёберно-независимых (s,t)-цепей в графе G=.
  */
 fun localEdgeConnectivity(g: Graph, s: Int, t: Int): Int {
-    val cpy = g.clone()   // Создаём копию графа
-    redo(cpy) { _, _, _ -> 1 }          // Устанавливаем веса равные единице
+    val cpy = g.clone()               // Создаём копию графа
+    redo(cpy) { _, _, _ -> 1 }        // Устанавливаем веса равные единице
     cpy.oriented = true               // Заменяем рёбра на пару симметричных дуг
-    return maxFlow(cpy, s, t).value     // Возвращаем величину макс. потока в новом графе
+    return maxFlow(cpy, s, t).value   // Возвращаем величину макс. потока в новом графе
 }

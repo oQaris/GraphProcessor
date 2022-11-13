@@ -3,7 +3,6 @@ package algorithm.thesis
 import graphs.Edge
 import graphs.Graph
 import graphs.edg
-import utils.Timestamps
 import kotlin.properties.Delegates
 
 interface Node {
@@ -68,6 +67,11 @@ class Subgraph(
     }
 }
 
+/**
+ * Тоже что Subgraph, но при удалении ребро заносится в список, а не изменяется исходный граф,
+ * что позволяет уменьшить расходы по памяти, но ухудшает быстродействие из-за необходимости
+ * создавать новый модифицированный граф при вызове updateScore.
+ */
 class EconomicalSubgraph(
     private val originalGraph: Graph,
     override val k: Int,
@@ -94,12 +98,6 @@ class EconomicalSubgraph(
         updateScore(lastRemEdge)
     }
 
-    /**
-     * Функция пересчёта оценки при изменении графа. Из списка непройденных рёбер убираем те,
-     * удаление которых в исходном графе нарушит его k-связность.
-     * @param removedEdge Удалённое ребро.
-     * Если не null, то будут рассматриваться только рёбра, инцидентные его концам.
-     */
     private fun updateScore(removedEdge: Edge?) {
         val g = genGraph()
         if (removedEdge != null) fixedEdges(g, removedEdge)
@@ -124,8 +122,3 @@ class EconomicalSubgraph(
             remEdges.forEach { remEdg(it) }
         }
 }
-
-/**
- * Возвращаемый результат в {@link algorithm.thesis.CourseworkKt#findSpanningKConnectedSubgraph(Graph,Int,LocalConnectivity,Strategy)}
- */
-data class Result(val answer: Graph, val rec: Int, val timestamps: Timestamps)

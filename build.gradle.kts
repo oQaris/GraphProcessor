@@ -17,17 +17,17 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     // Console
-    implementation("info.picocli:picocli:4.6.3")
+    implementation("info.picocli:picocli:4.7.0")
     implementation("info.picocli:picocli-jansi-graalvm:1.2.0")
     implementation("org.fusesource.jansi:jansi:2.4.0")
-    kapt("info.picocli:picocli-codegen:4.6.3")
+    kapt("info.picocli:picocli-codegen:4.7.0")
     // Algorithm
     implementation("com.udojava:EvalEx:2.7")
     implementation("com.github.shiguruikai:combinatoricskt:1.6.0")
     // Logging
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
-    implementation("org.slf4j:slf4j-api:1.7.36")
-    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
+    implementation("org.slf4j:slf4j-api:2.0.3")
+    implementation("ch.qos.logback:logback-classic:1.4.4")
 }
 
 fun Project.kapt(setup: KaptExtension.() -> Unit) = the<KaptExtension>().setup()

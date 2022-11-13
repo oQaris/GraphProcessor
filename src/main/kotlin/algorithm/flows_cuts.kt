@@ -6,11 +6,17 @@ import graphs.toEdge
 data class AugmentingPath(val value: Int, val path: List<Int>)
 data class FlowResult(val value: Int, val flow: List<AugmentingPath>)
 
-fun <A, B> Pair<A, B>.inv() = second to first
-
+/**
+ * Поиск максимального потока с помощью алгоритма Эдмондса-Карпа
+ *
+ * @param g     Сеть для поиска максимального потока.
+ * @param s     Стартовая вершина.
+ * @param t     Конечная вершина.
+ * @return Величина максимального потока и список увеличивающих путей
+ */
 fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
     require(start != end) { "The vertices must be different." }
-    var b = 0                           // Величина потока
+    var b = 0             // Величина потока
     val flow = g.clone()  // Поток
     val copy = g.clone()  // Остаточная сеть
     flow.oriented = true
@@ -44,7 +50,9 @@ fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
             else copy.addEdg(it.toEdge(newWeightVU).revert())
         }
         out.add(AugmentingPath(delta, path)) // формируем объект со списком и величиной увеличивающего пути
-        path = route(copy, start, end) // находим новый увеличивающий путь
+        path = route(copy, start, end)       // находим новый увеличивающий путь
     }
     return FlowResult(b, out)
 }
+
+fun <A, B> Pair<A, B>.inv() = second to first
