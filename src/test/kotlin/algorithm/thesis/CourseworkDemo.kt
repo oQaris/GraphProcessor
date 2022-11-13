@@ -19,7 +19,7 @@ internal class CourseworkDemo {
     fun `Number of edges in the graph`() {
         val k = 2
         val n = 30
-        val sfg = SetFileGraph(File("TestData2.txt"), false)
+        val sfg = SetFileGraph(File("TestData2.txt"), pullOldData = false)
 
         println("N_edges;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;")
         for (numEdg in Generator.minNumEdge(n, k)..Generator.maxNumEdge(n)) {

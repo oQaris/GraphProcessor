@@ -29,7 +29,7 @@ interface Strategy {
 
     /**
      * Указывает, нужна ли пересортировка с помощью `sortEdges`
-     * после каждого удаления ребра, или только 1 раз в начсле
+     * после каждого удаления ребра, или только 1 раз в начале
      */
     val reSort: Boolean get() = true
 }
@@ -52,16 +52,9 @@ open class UnweightedStrategy : Strategy {
 }
 
 class WeightedStrategy : Strategy {
-    /**
-     * Минимизируемое значение для данного графа
-     */
+
     override fun record(graph: Graph) = graph.sumWeights
 
-    /**
-     * Вычисление оценки узла дерева (подграфа),
-     * чем ниже оценка, тем раньше он обработается (т.к. задача минимизации).
-     * Если все оценки больше или равны рекорду - завершение работы
-     */
     override fun evaluate(sub: Node): Int {
         val reqMinWeight = sub.graph.getEdges()
             .map { it.weight }
@@ -74,20 +67,11 @@ class WeightedStrategy : Strategy {
         return max(reqMinWeight, curMinWeight)
     }
 
-    /**
-     * Задаёт порядок удаления рёбер в графе. Сортировка рёбер по стоимости, затем по сумме и минимуму степеней инцидентных вершин
-     */
     override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
         compareBy<Edge> { it.weight }
             .thenBy { (u, v) -> graph.deg(u) + graph.deg(v) }
             .thenBy { (u, v) -> min(graph.deg(u), graph.deg(v)) }
             .reversed())
-
-    /**
-     * Указывает, нужна ли пересортировка с помощью `sortEdges`
-     * после каждого удаления ребра, или только 1 раз в начале
-     */
-    override val reSort = true
 }
 
 class NegativeWeightedStrategy : Strategy {

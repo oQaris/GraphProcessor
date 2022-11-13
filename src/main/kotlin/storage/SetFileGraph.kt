@@ -6,9 +6,9 @@ import java.io.File
 import java.io.FileOutputStream
 
 class SetFileGraph(
-    private var file: File,
-    private val map: MutableMap<String, Graph>,
-    pullOldData: Boolean
+    private var file: File = File("GraphData"),
+    private val map: MutableMap<String, Graph> = mutableMapOf(),
+    pullOldData: Boolean = true
 ) : MutableMap<String, Graph> by map {
 
     init {
@@ -17,10 +17,7 @@ class SetFileGraph(
     }
 
     constructor(f: File, vararg graphs: Graph, pullOldData: Boolean = true) :
-            this(f, graphs.map { it.name }.zip(graphs).toMap().toMutableMap(), pullOldData)
-
-    constructor(f: File = File("GraphData"), pullOldData: Boolean = true) :
-            this(f, mutableMapOf(), pullOldData)
+            this(f, graphs.associateBy { it.name }.toMutableMap(), pullOldData)
 
     private fun pull() {
         file.bufferedReader().use { it.readText() }
