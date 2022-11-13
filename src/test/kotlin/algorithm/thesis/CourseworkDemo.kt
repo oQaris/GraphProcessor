@@ -74,11 +74,12 @@ internal class CourseworkDemo {
                     }
                 else sfg[name]
 
-            val timestamps = findSpanningKConnectedSubgraph(graph, 2).timestamps.get()
+            val timer = Timestamps()
+            findSpanningKConnectedSubgraph(graph, 2, driver = { timer.make() })
 
-            times.add(timestamps.last())
-            if (timestamps.size >= 3)
-                timesRec.add(timestamps.let { it[it.size - 3] })
+            times.add(timer.get().last())
+            if (timer.get().size >= 3)
+                timesRec.add(timer.get().let { it[it.size - 3] })
         }
         if (isNewDataGen) {
             sfg.push(true)
@@ -104,8 +105,9 @@ internal class CourseworkDemo {
             val timestamps = mutableListOf<Long>()
             graphs.forEach {
                 try {
-                    val res = findSpanningKConnectedSubgraph(it, k)
-                    timestamps.add(res.timestamps.getLast())
+                    val timer = Timestamps()
+                    findSpanningKConnectedSubgraph(it, k, driver = { timer.make() })
+                    timestamps.add(timer.getLast())
                 } catch (e: Exception) {
                     timestamps.add(0L)
                 }
@@ -120,11 +122,12 @@ internal class CourseworkDemo {
         println(graph)
         println("k;rec;prev;ppprev;")
         for (k in 1 until graph.numVer) {
-            val res = findSpanningKConnectedSubgraph(graph, k)
+            val timer = Timestamps()
+            findSpanningKConnectedSubgraph(graph, k, driver = { timer.make() })
             println(
-                "$k;${res.timestamps.getLast()};" +
-                        "${res.timestamps.get().dropLast(1).last()};" +
-                        "${res.timestamps.get().dropLast(2).last()};"
+                "$k;${timer.getLast()};" +
+                        "${timer.get().dropLast(1).last()};" +
+                        "${timer.get().dropLast(2).last()};"
             )
         }
     }
@@ -143,17 +146,21 @@ internal class CourseworkDemo {
             try {
                 repeat(4) {
                     val g = Generator(n, p = p, conn = k).build()
+                    val timerE = Timestamps()
+                    val timerV = Timestamps()
 
-                    val resultE = findSpanningKConnectedSubgraph(
+                    findSpanningKConnectedSubgraph(
                         g, k,
-                        localConnectivity = ::localEdgeConnectivity
+                        localConnectivity = ::localEdgeConnectivity,
+                        driver = { timerE.make() }
                     )
-                    val resultV = findSpanningKConnectedSubgraph(
+                    findSpanningKConnectedSubgraph(
                         g, k,
-                        localConnectivity = ::localVertexConnectivity
+                        localConnectivity = ::localVertexConnectivity,
+                        driver = { timerV.make() }
                     )
-                    timesListE.add(resultE.timestamps.getLast())
-                    timesListV.add(resultV.timestamps.getLast())
+                    timesListE.add(timerE.getLast())
+                    timesListV.add(timerV.getLast())
                 }
             } catch (_: GraphGenerationException) {
                 continue
@@ -172,9 +179,10 @@ internal class CourseworkDemo {
             val timesList = mutableListOf<Long>()
 
             repeat(10) {
+                val timer = Timestamps()
                 val g = Generator(n, p = 1f, weights = (0..lim)).build()
-                val result = findSpanningKConnectedSubgraph(g, k, strategy = WeightedStrategy())
-                timesList.add(result.timestamps.getLast())
+                findSpanningKConnectedSubgraph(g, k, strategy = WeightedStrategy(), driver = { timer.make() })
+                timesList.add(timer.getLast())
             }
 
             println("$lim;${timesList.median()}")
@@ -194,12 +202,13 @@ internal class CourseworkDemo {
             repeat(100) {
                 val graph = Generator(numVer = n, p = p, conn = conn).build()
 
-                val timestamps = findSpanningKConnectedSubgraph(graph, conn).timestamps.get()
+                val timer = Timestamps()
+                findSpanningKConnectedSubgraph(graph, conn, driver = { timer.make() })
 
-                timestamps.takeLast(lastTimesCount)
+                timer.get().takeLast(lastTimesCount)
                     .forEachIndexed { index, time -> timesArr[index].add(time) }
             }
-            val times = timesArr.map { TimeMeter(it).getMedian() }
+            val times = timesArr.map { it.median() }
             println("$n;${times.joinToString(";")};")
         }
 
@@ -213,29 +222,29 @@ internal class CourseworkDemo {
         val k = 2
         val p = 0.3f
 
-        //val graphs = SetFileGraph(File("TestData")).values.toList()
-
         fun score(g: Graph) = Subgraph(g, k, WeightedStrategy(), g.getEdges()).score
 
         fun helper(n: Int) {
-
             val timesArr = Array(lastTimesCount) { mutableListOf<Long>() }
 
             var numEx = 0
             while (++numEx != 50) {
                 val graph = Generator(numVer = n, p = p, conn = k, weights = 1..5).build()
 
-                val result = findSpanningKConnectedSubgraph(graph, k, strategy = WeightedStrategy())
+                val timer = Timestamps()
+                val result = findSpanningKConnectedSubgraph(graph, k,
+                    strategy = WeightedStrategy(),
+                    driver = { timer.make() })
+
                 if (score(result.answer) == score(graph)) {
                     --numEx
                     println("Пропуск")
                     continue
                 }
-                //println(graph)
-                result.timestamps.get().takeLast(lastTimesCount)
+                timer.get().takeLast(lastTimesCount)
                     .forEachIndexed { index, time -> timesArr[index].add(time) }
             }
-            val times = timesArr.map { TimeMeter(it).getMedian() }
+            val times = timesArr.map { it.median() }
             println("$n;${times.joinToString(";")};")
         }
 

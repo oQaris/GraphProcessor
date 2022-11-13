@@ -10,8 +10,8 @@ data class FlowResult(val value: Int, val flow: List<AugmentingPath>)
  * Поиск максимального потока с помощью алгоритма Эдмондса-Карпа
  *
  * @param g     Сеть для поиска максимального потока.
- * @param s     Стартовая вершина.
- * @param t     Конечная вершина.
+ * @param start     Стартовая вершина.
+ * @param end     Конечная вершина.
  * @return Величина максимального потока и список увеличивающих путей
  */
 fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {

@@ -5,6 +5,7 @@ import graphs.Graph
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
+import utils.Timestamps
 import kotlin.math.max
 import kotlin.math.min
 
@@ -16,16 +17,19 @@ internal class SortEdgesDemo {
         println("n;natural;sum_deg;max_deg;min_deg;advanced;")
         for (n in 40 until 41) {
 
-            fun alg(strategy: Strategy): Long =
+            fun alg(strategy: Strategy): Long {
+                val timer = Timestamps()
                 findSpanningKConnectedSubgraph(
-                    Generator(n, p = 1f).build(), 3, strategy = strategy
-                ).timestamps.getLast()
+                    Generator(n, p = 1f).build(), 3, strategy = strategy, driver = { timer.make() }
+                )
+                return timer.getLast()
+            }
 
             print("$n;")
             repeat(4) {
                 val res: Long = when (it) {
                     0 -> alg(object : UnweightedStrategy() {
-                        override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = Unit
+                        override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = Unit
                     })
                     1 -> alg(object : UnweightedStrategy() {
                         override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
@@ -33,8 +37,8 @@ internal class SortEdgesDemo {
                                 .reversed())
                     })
                     2 -> alg(object : UnweightedStrategy() {
-                        override fun sortEdges(edges: MutableList<Pair<Int, Int>>, graph: Graph) = edges.sortWith(
-                            compareBy<Pair<Int, Int>> { (u, v) -> max(graph.deg(u), graph.deg(v)) }
+                        override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
+                            compareBy<Edge> { (u, v) -> max(graph.deg(u), graph.deg(v)) }
                                 .reversed())
                     })
                     3 -> alg(object : UnweightedStrategy() {
@@ -52,7 +56,8 @@ internal class SortEdgesDemo {
 
     @Test
     fun isResortTest() {
-        fun alg(graph: Graph, isResort: Boolean): Long =
+        fun alg(graph: Graph, isResort: Boolean): Long {
+            val timer = Timestamps()
             findSpanningKConnectedSubgraph(
                 graph, 3, strategy = object : UnweightedStrategy() {
                     override fun sortEdges(edges: MutableList<Edge>, graph: Graph) = edges.sortWith(
@@ -61,8 +66,10 @@ internal class SortEdgesDemo {
 
                     override val reSort: Boolean
                         get() = isResort
-                }
-            ).timestamps.getLast()
+                }, driver = { timer.make() }
+            )
+            return timer.getLast()
+        }
 
         println("n;with_resort;no_resort;")
         for (n in 6..40) {

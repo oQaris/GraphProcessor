@@ -9,6 +9,10 @@ import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
+enum class Event {
+    ADD, ON, OFF
+}
+
 data class Result(val answer: Graph, val rec: Int)
 
 /**
@@ -18,13 +22,15 @@ data class Result(val answer: Graph, val rec: Int)
  * @param k                 Связность искомого подграфа.
  * @param localConnectivity Функция определения связности (по умолчанию - рёберная связность).
  * @param strategy          Стратегия управления методом ветвей и границ.
+ * @param driver            Объект для обработки сообщений процесса работы.
  * @return Подграф заданной связности с минимальной суммой стоимостей рёбер.
  */
 fun findSpanningKConnectedSubgraph(
     g: Graph,
     k: Int,
     localConnectivity: LocalConnectivity = ::localEdgeConnectivity,
-    strategy: Strategy = WeightedStrategy()
+    strategy: Strategy = WeightedStrategy(),
+    driver: (Event) -> Unit = {}
 ): Result {
     require(k > 0)
     require(connectivity(g, localConnectivity) >= k)
@@ -41,6 +47,7 @@ fun findSpanningKConnectedSubgraph(
             strategy.sortEdges(edges, g)
         leaves.add(Subgraph(g, k, strategy, edges))
     }
+    driver.invoke(Event.ON)
     while (leaves.isNotEmpty()) {
         val curElem = leaves.poll()
         if (curElem.score >= rec)
@@ -58,6 +65,7 @@ fun findSpanningKConnectedSubgraph(
             )
             val newRec = strategy.record(newG)
             if (newRec < rec) {
+                driver.invoke(Event.ADD)
                 rec = newRec
                 minG = newG
                 leaves.removeIf { it.score >= rec }
@@ -69,5 +77,6 @@ fun findSpanningKConnectedSubgraph(
         if (curElem.score < rec)
             leaves.add(curElem)
     }
+    driver.invoke(Event.OFF)
     return Result(minG, rec)
 }

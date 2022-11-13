@@ -167,7 +167,8 @@ class GPSubgraph : GraphParameter(), Runnable {
                 findSpanningKConnectedSubgraph(graph, exclusive.edgeConn, ::localEdgeConnectivity)
             else
                 findSpanningKConnectedSubgraph(graph, exclusive.vertexConn, ::localVertexConnectivity)
-        println("Time: " + res.timestamps)
+        //todo сделать построение дерева рекурсии с замером времени
+        //println("Time: " + res.timestamps)
         println(res.answer)
     }
 }
