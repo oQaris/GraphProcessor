@@ -1,7 +1,7 @@
 package graphs.impl
 
 import graphs.*
-import graphs.GraphException.Companion.ERR_SIZE_SQ
+import storage.standardToString
 import java.util.*
 
 /**
@@ -36,7 +36,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     }
 
     constructor(name: String, size: Int) : this(name) {
-        require(size > 0) { ERR_SIZE_SQ }
+        requireG(size > 0) { ERR_SIZE_EM }
         data = Array(size) { arrayOfNulls(size) }
         oriented = false
         initCashes()
@@ -55,18 +55,15 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     constructor(name: String, srcData: List<List<Int?>>) : this(name) {
         checkSize(srcData)
         data = Array(srcData.size) { arrayOfNulls<Int?>(srcData.size) }
-        for (i in data.indices) for (j in data.indices) data[i][j] = srcData[i][j]
+        for (i in data.indices)
+            for (j in data.indices)
+                data[i][j] = srcData[i][j]
         oriented = checkOriented()
         initCashes()
     }
 
-    constructor(name: String, srcData: Array<Array<Boolean>>) : this(name) {
-        checkSize(srcData)
-        data = Array(srcData.size) { arrayOfNulls<Int?>(srcData.size) }
-        for (i in data.indices) for (j in data.indices) if (srcData[i][j]) data[i][j] = 1
-        oriented = checkOriented()
-        initCashes()
-    }
+    constructor(name: String, srcData: Array<Array<Boolean>>)
+            : this(name, srcData.map { row -> row.map { if (it) 1 else 0 } })
 
     constructor(src: AdjacencyMatrixGraph) : this(src.name) {
         oriented = src.oriented
@@ -89,7 +86,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     }
 
     override fun addVer(count: Int) {
-        require(count >= 0) { "The number of vertices added must be non-negative." }
+        requireG(count >= 0) { "The number of vertices added must be non-negative." }
         val n = data.size + count
         val dataCpy = Array(n) { arrayOfNulls<Int?>(n) }
         for (i in data.indices)
@@ -183,22 +180,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
         if (!oriented) data[v][u] = null
     }
 
-    // Не менять, используется парсером
-    override fun toString(): String {
-        val sb = StringBuilder()
-        sb.append(":").append(name).append(":")
-        sb.append(System.lineSeparator())
-        for (i in 0 until numVer) {
-            for (j in 0 until numVer)
-                sb.append(
-                    if (isCom(i, j))
-                        getWeightEdg(i, j).toString()
-                    else "-"
-                ).append(" ")
-            sb.append(System.lineSeparator())
-        }
-        return sb.toString()
-    }
+    override fun toString() = standardToString(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

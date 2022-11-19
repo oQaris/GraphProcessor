@@ -1,6 +1,7 @@
 package algorithm
 
 import graphs.Graph
+import graphs.requireG
 import java.util.*
 
 /**
@@ -32,7 +33,7 @@ fun hamiltonCycle(g: Graph, start: Int, cycle: Boolean, tree: Boolean): List<Int
     if (tree) println("Search tree:\n►$start")
 
     while (!pass.all { it }) {
-        require(hc.isNotEmpty()) {
+        requireG(hc.isNotEmpty()) {
             "The graph does not contain a Hamiltonian " +
                     if (cycle) "cycle." else "chain from a given vertex."
         }

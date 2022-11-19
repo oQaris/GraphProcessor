@@ -7,13 +7,22 @@ fun cloneArray(src: Array<Array<Int?>>): Array<Array<Int?>> {
     return target
 }
 
-fun <T> checkSize(srcData: Array<Array<T>>) {
-    checkSize(srcData.asList().map { it.asList() })
+fun <T> checkSize(srcData: List<List<T>>) {
+    requireG(srcData.isNotEmpty()) { ERR_SIZE_EM }
+    srcData.forEach {
+        requireG(srcData.size == it.size) { ERR_SIZE_SQ }
+    }
 }
 
-fun <T> checkSize(srcData: List<List<T>>) {
-    require(srcData.isNotEmpty())
-    srcData.forEach {
-        require(srcData.size == it.size)
-    }
+fun <T> checkSize(srcData: Array<Array<T>>) {
+    checkSize(srcData.map { it.asList() })
+}
+
+
+fun isOriented(data: List<List<Int?>>): Boolean {
+    for (i in data.indices)
+        for (j in 0 until i)
+            if (data[j][i] != data[i][j])
+                return true
+    return false
 }

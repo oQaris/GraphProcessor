@@ -92,9 +92,7 @@ class Generator(
 
 class GraphGenerationException(msg: String) : GraphException(msg)
 
-inline fun requireG(value: Boolean, lazyMessage: () -> Any) {
-    if (!value) {
-        val message = lazyMessage()
-        throw GraphGenerationException(message.toString())
-    }
+// override in this file
+private inline fun requireG(value: Boolean, lazyMessage: () -> String) {
+    if (!value) throw GraphGenerationException(lazyMessage())
 }

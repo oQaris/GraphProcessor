@@ -1,6 +1,7 @@
 package algorithm
 
 import graphs.Graph
+import graphs.requireG
 import graphs.toEdge
 
 data class AugmentingPath(val value: Int, val path: List<Int>)
@@ -15,7 +16,7 @@ data class FlowResult(val value: Int, val flow: List<AugmentingPath>)
  * @return Величина максимального потока и список увеличивающих путей
  */
 fun maxFlow(g: Graph, start: Int, end: Int): FlowResult {
-    require(start != end) { "The vertices must be different." }
+    requireG(start != end) { "The vertices must be different." }
     var b = 0             // Величина потока
     val flow = g.clone()  // Поток
     val copy = g.clone()  // Остаточная сеть

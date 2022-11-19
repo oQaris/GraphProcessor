@@ -21,18 +21,17 @@ fun parse(
             }.toList()
         }).also { id++ }
 
-fun standardToString(graph: Graph): String {
-    val sb = StringBuilder()
-    sb.append(":").append(graph.name).append(":")
-    sb.append(System.lineSeparator())
-    for (i in 0 until graph.numVer) {
-        for (j in 0 until graph.numVer)
-            sb.append(
-                if (graph.isCom(i, j))
-                    graph.getWeightEdg(i, j).toString()
-                else "-"
-            ).append(" ")
-        sb.append(System.lineSeparator())
-    }
-    return sb.toString()
-}
+fun standardToString(graph: Graph) =
+    StringBuilder().apply {
+        append(":").append(graph.name).append(":")
+        append(System.lineSeparator())
+        for (i in 0 until graph.numVer) {
+            for (j in 0 until graph.numVer)
+                append(
+                    if (graph.isCom(i, j))
+                        graph.getWeightEdg(i, j).toString()
+                    else noEdgeTokens.first()
+                ).append(" ")
+            append(System.lineSeparator())
+        }
+    }.toString()

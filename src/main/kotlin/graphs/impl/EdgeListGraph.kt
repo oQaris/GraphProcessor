@@ -1,7 +1,6 @@
 package graphs.impl
 
 import graphs.*
-import graphs.GraphException.Companion.ERR_SIZE_SQ
 import storage.standardToString
 import java.util.*
 import kotlin.properties.Delegates
@@ -14,69 +13,61 @@ class EdgeListGraph(
 ) : Graph {
 
     override var oriented: Boolean = false
+    //todo set
 
     override var numVer by Delegates.notNull<Int>()
-    /*get() = buildSet {
-        edgesList.forEach {
-            add(it.first)
-            add(it.second)
-        }
-    }.size*/
 
     override val numEdg: Int
-        get() = edgesList.size
+        get() = edgesSet.size
 
     override val sumWeights: Int
-        get() = edgesList.sumOf { it.weight }
+        get() = edgesSet.sumOf { it.weight }
 
     private val comparator = Comparator.comparing<Edge?, Int?> { e -> e.first }
         .thenComparing { e -> e.second }
         .thenComparing { e -> e.weight }
 
-    var edgesList: MutableSet<Edge> = TreeSet(comparator)
+    var edgesSet: MutableSet<Edge> = TreeSet(comparator)
+
+    // ---------------------------------- Конструкторы --------------------------------- //
 
     constructor(name: String, size: Int) : this(name) {
-        require(size > 0) { ERR_SIZE_SQ }
+        requireG(size > 0) { ERR_SIZE_EM }
         numVer = size
         oriented = false
     }
 
-    constructor(name: String, srcData: Array<Array<Int?>>) : this(name) {
-        checkSize(srcData)
-        for (i in srcData.indices)
-            for (j in srcData.indices)
-                if (srcData[i][j] != null)
-                    edgesList.add(i edg j w srcData[i][j]!!)
-        numVer = srcData.size
-        oriented = checkOriented()
-    }
-
     constructor(name: String, srcData: List<List<Int?>>) : this(name) {
         checkSize(srcData)
+        oriented = isOriented(srcData)
         for (i in srcData.indices)
             for (j in srcData.indices)
-                if (srcData[i][j] != null)
-                    edgesList.add(i edg j w srcData[i][j]!!)
-        numVer = srcData.size
-        oriented = checkOriented()
+                if (srcData[i][j] != null) {
+                    val edge = i edg j w srcData[i][j]!!
+                    if (oriented) edgesSet.add(edge)
+                    else edgesSet.add(norm(edge))
+                }
+        numVer = edgesSet.flatMap {
+            listOf(it.first, it.second)
+        }.toSet().size
     }
 
-    constructor(name: String, srcData: Array<Array<Boolean>>) : this(name) {
-        checkSize(srcData)
-        for (i in srcData.indices)
-            for (j in srcData.indices)
-                if (srcData[i][j])
-                    edgesList.add(i edg j w 1)
-        numVer = srcData.size
-        oriented = checkOriented()
-    }
+    constructor(name: String, srcData: Array<Array<Int?>>)
+            : this(name, srcData.map { it.asList() })
+
+    constructor(name: String, srcData: Array<Array<Boolean>>)
+            : this(name, srcData.map { row -> row.map { if (it) 1 else 0 } })
 
     constructor(src: Graph) : this(src.name) {
-        edgesList = TreeSet(comparator)
+        edgesSet = TreeSet(comparator)
             .apply { addAll(src.getEdges()) }
         numVer = src.numVer
         oriented = src.oriented
     }
+
+    override fun clone() = EdgeListGraph(this)
+
+    // ---------------------------------- Методы интерфейса --------------------------------- //
 
     override fun addVer(count: Int) {
         numVer += count
@@ -87,13 +78,13 @@ class EdgeListGraph(
         remEdg(u, v)
         if (!oriented) {
             val (min, max) = norm(u, v)
-            edgesList.add(min edg max w weight)
-        } else edgesList.add(u edg v w weight)
+            edgesSet.add(min edg max w weight)
+        } else edgesSet.add(u edg v w weight)
     }
 
     override fun getWeightEdg(u: Int, v: Int): Int? {
         checkCorrectVer(u, v)
-        return edgesList.find {
+        return edgesSet.find {
             it.first == u && it.second == v
                     || (if (!oriented)
                 it.first == v && it.second == u
@@ -103,35 +94,41 @@ class EdgeListGraph(
 
     override fun remVer(ver: Int) {
         checkCorrectVer(ver)
-        edgesList.removeIf { it.first == ver || it.second == ver }
+        edgesSet.removeIf { it.first == ver || it.second == ver }
     }
 
     override fun remEdg(u: Int, v: Int) {
         checkCorrectVer(u, v)
         if (!oriented) {
             val (min, max) = norm(u, v)
-            edgesList.removeIf { it.first == min && it.second == max }
-        } else edgesList.removeIf { it.first == u && it.second == v }
+            edgesSet.removeIf { it.first == min && it.second == max }
+        } else edgesSet.removeIf { it.first == u && it.second == v }
     }
 
     override fun deg(ver: Int, isOut: Boolean): Int {
         checkCorrectVer(ver)
-        return edgesList.count { if (isOut) it.first == ver else it.second == ver }
+        return edgesSet.count { if (isOut) it.first == ver else it.second == ver }
     }
 
     override fun com(ver: Int): MutableList<Int> {
         checkCorrectVer(ver)
-        return edgesList.filter { it.first == ver }.map { it.second }.toMutableList()
+        return edgesSet.filter { it.first == ver }.map { it.second }.toMutableList()
     }
 
     override fun getEdges(): MutableList<Edge> {
-        return edgesList.toMutableList()
+        return edgesSet.toMutableList()
     }
 
-    override fun clone() = EdgeListGraph(this)
+    private fun checkOriented(srcData: List<List<Int?>>): Boolean {
+        return !edgesSet.all { edgesSet.contains(it.revert()) }
+    }
 
-    private fun checkOriented(): Boolean {
-        return edgesList.any { edgesList.contains(it.revert()) }
+    // Задаёт естественный порядок для хранения в неориентированном графе
+    private fun norm(u: Int, v: Int) = if (u < v) u to v else v to u
+
+    private fun norm(edge: Edge): Edge {
+        val (u, v) = norm(edge.first, edge.second)
+        return u edg v w edge.weight
     }
 
     // Не менять, используется парсером
@@ -142,16 +139,13 @@ class EdgeListGraph(
         if (javaClass != other?.javaClass) return false
         other as EdgeListGraph
         if (name != other.name) return false
-        if (edgesList != other.edgesList) return false
+        if (edgesSet != other.edgesSet) return false
         return true
     }
 
     override fun hashCode(): Int {
         var result = name.hashCode()
-        result = 31 * result + edgesList.hashCode()
+        result = 31 * result + edgesSet.hashCode()
         return result
     }
-
-    // Задаёт естественный порядок для хранения в неориентированном графе
-    private fun norm(u: Int, v: Int) = if (u < v) u to v else v to u
 }

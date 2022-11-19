@@ -4,6 +4,7 @@ import algorithm.LocalConnectivity
 import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import graphs.Graph
+import graphs.requireG
 import mu.KotlinLogging
 import java.util.*
 
@@ -32,8 +33,8 @@ fun findSpanningKConnectedSubgraph(
     strategy: Strategy = WeightedStrategy(),
     driver: (Event) -> Unit = {}
 ): Result {
-    require(k > 0)
-    require(connectivity(g, localConnectivity) >= k)
+    requireG(k > 0)
+    requireG(connectivity(g, localConnectivity) >= k)
     { "The original graph must have a connection not less than $k" }
     var rec = strategy.record(g)  // Текущий рекорд
     var minG = g                  // Текущий минимальный граф
