@@ -1,10 +1,20 @@
 package graphs
 
+import graphs.impl.AdjacencyMatrixGraph
 import graphs.impl.EdgeListGraph
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.assertEquals
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class GraphTest {
+
+    private fun graphsProvider() = listOf(
+        AdjacencyMatrixGraph("null", 4),
+        EdgeListGraph("null", 4)
+    )
 
     @Test
     fun orientedTest() {
@@ -25,8 +35,9 @@ internal class GraphTest {
         assertEquals(6 * 2, graph.getPairVer().size)
     }
 
-    @Test
-    fun getNumVerTest() {
+    @ParameterizedTest
+    @MethodSource("graphsProvider")
+    fun getNumVerTest(graph: Graph) {
     }
 
     @Test

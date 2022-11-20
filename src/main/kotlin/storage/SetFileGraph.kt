@@ -33,7 +33,7 @@ class SetFileGraph(
         FileOutputStream(file, append)
             .bufferedWriter().use { bw ->
                 for (g in map.values) {
-                    bw.write(g.toString())
+                    bw.write(standardToString(g))
                     bw.flush()
                 }
             }

@@ -16,6 +16,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.1")
     // Console
     implementation("info.picocli:picocli:4.7.0")
     implementation("info.picocli:picocli-jansi-graalvm:1.2.0")

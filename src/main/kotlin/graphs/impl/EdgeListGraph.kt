@@ -119,10 +119,6 @@ class EdgeListGraph(
         return edgesSet.toMutableList()
     }
 
-    private fun checkOriented(srcData: List<List<Int?>>): Boolean {
-        return !edgesSet.all { edgesSet.contains(it.revert()) }
-    }
-
     // Задаёт естественный порядок для хранения в неориентированном графе
     private fun norm(u: Int, v: Int) = if (u < v) u to v else v to u
 
@@ -131,7 +127,6 @@ class EdgeListGraph(
         return u edg v w edge.weight
     }
 
-    // Не менять, используется парсером
     override fun toString() = standardToString(this)
 
     override fun equals(other: Any?): Boolean {

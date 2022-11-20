@@ -7,13 +7,13 @@ import algorithm.localVertexConnectivity
 import com.github.shiguruikai.combinatoricskt.permutationsWithRepetition
 import graphs.Graph
 import graphs.GraphException
+import graphs.requireG
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import storage.Generator
 import storage.SetFileGraph
-import storage.requireG
 
 internal class CourseworkTest {
 

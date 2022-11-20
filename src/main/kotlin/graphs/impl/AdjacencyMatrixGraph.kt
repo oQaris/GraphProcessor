@@ -30,16 +30,13 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
 
     override var sumWeights: Int = 0
 
-    private fun initCashes() {
-        numEdg = getPairVer().count { (i, j) -> data[i][j] != null }
-        sumWeights = getEdges().sumOf { (i, j) -> data[i][j]!! }
-    }
+    // ---------------------------------- Конструкторы --------------------------------- //
 
     constructor(name: String, size: Int) : this(name) {
         requireG(size > 0) { ERR_SIZE_EM }
         data = Array(size) { arrayOfNulls(size) }
         oriented = false
-        initCashes()
+        recalcStats()
     }
 
     constructor(name: String, srcData: Array<Array<Int?>>, unsafe: Boolean = false) : this(name) {
@@ -49,7 +46,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
             cloneArray(srcData)
         }
         oriented = checkOriented()
-        initCashes()
+        recalcStats()
     }
 
     constructor(name: String, srcData: List<List<Int?>>) : this(name) {
@@ -59,7 +56,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
             for (j in data.indices)
                 data[i][j] = srcData[i][j]
         oriented = checkOriented()
-        initCashes()
+        recalcStats()
     }
 
     constructor(name: String, srcData: Array<Array<Boolean>>)
@@ -68,7 +65,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     constructor(src: AdjacencyMatrixGraph) : this(src.name) {
         oriented = src.oriented
         data = cloneArray(src.data)
-        initCashes()
+        recalcStats()
     }
 
     constructor(src: Graph) : this(src.name) {
@@ -77,8 +74,17 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
             for (j in data.indices)
                 data[i][j] = src.getWeightEdg(i, j)
         oriented = checkOriented()
-        initCashes()
+        recalcStats()
     }
+
+    override fun clone() = AdjacencyMatrixGraph(this)
+
+    private fun recalcStats() {
+        numEdg = getPairVer().count { (i, j) -> data[i][j] != null }
+        sumWeights = getEdges().sumOf { (i, j) -> data[i][j]!! }
+    }
+
+    // ---------------------------------- Методы интерфейса --------------------------------- //
 
     override fun getWeightEdg(u: Int, v: Int): Int? {
         checkCorrectVer(u, v)
@@ -101,33 +107,17 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
             if (data[u][v] == null) {
                 numEdg++
                 weight
-            } else data[u][v]!! - weight
+            } else weight - data[u][v]!!
 
         data[u][v] = weight
-        if (!oriented) data[v][u] = weight
-    }
-
-    /**
-     * Получить копию матрицы смежности
-     *
-     * @return Двумерный массив Integer, содержащий матрицу смежности, где arr[i][j]==null означает, что вершины i и j не смежны,
-     * иначе - указан вес ребра ij (для невзвешанного графа - 1)
-     */
-    val matrix: Array<Array<Int?>>
-        get() = cloneArray(data)
-
-
-    private fun checkOriented(): Boolean {
-        for (i in data.indices)
-            for (j in 0 until i)
-                if (data[j][i] != data[i][j]) return true
-        return false
+        if (!oriented)
+            data[v][u] = weight
     }
 
     override fun deg(ver: Int, isOut: Boolean): Int {
         checkCorrectVer(ver)
         var deg = 0
-        if (isOut)
+        if (isOut) // оптимизация для скорости работы, чтобы не делать проверку в цикле
             for (i in data.indices) {
                 if (data[ver][i] != null) deg++
             }
@@ -159,26 +149,44 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
         return out
     }
 
-    override fun clone() = AdjacencyMatrixGraph(this)
-
     override fun remVer(ver: Int) {
         checkCorrectVer(ver)
-        for (i in data.indices)
-            for (j in data.indices)
-                if (i == ver || j == ver)
-                    data[i][j] = null
-        initCashes()
+        getPairVer().forEach { (u, v) ->
+            if (u == ver || v == ver)
+                remEdgDecStats(u, v)
+        }
     }
 
     override fun remEdg(u: Int, v: Int) {
         checkCorrectVer(u, v)
+        remEdgDecStats(u, v)
+    }
+
+    private fun remEdgDecStats(u: Int, v: Int) {
         if (data[u][v] != null) {
             numEdg--
             sumWeights -= data[u][v]!!
         }
         data[u][v] = null
-        if (!oriented) data[v][u] = null
+        if (!oriented)
+            data[v][u] = null
     }
+
+    private fun checkOriented(): Boolean {
+        for (i in data.indices)
+            for (j in 0 until i)
+                if (data[j][i] != data[i][j]) return true
+        return false
+    }
+
+    /**
+     * Получить копию *матрицы смежности*
+     *
+     * @return Двумерный массив [Integer], содержащий матрицу смежности, где ```matrix[i][j]==null``` означает,
+     * что вершины [i] и [j] не смежны, иначе - указан вес ребра ij (для невзвешенного графа - 1)
+     */
+    val matrix: Array<Array<Int?>>
+        get() = cloneArray(data)
 
     override fun toString() = standardToString(this)
 
