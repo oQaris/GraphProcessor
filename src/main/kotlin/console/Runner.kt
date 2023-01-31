@@ -70,8 +70,8 @@ fun printECycle(g: Graph) {
         return
     }
     var numEvenVer = 0
-    for (i in g.numVer - 1 downTo 0) if (g.deg(i) % 2 === 0) numEvenVer++
-    if (g.numVer - numEvenVer === 0) println(
+    for (i in g.numVer - 1 downTo 0) if (g.deg(i) % 2 == 0) numEvenVer++
+    if (g.numVer - numEvenVer == 0) println(
         "ЭЦ:  " + eulerCycle(
             g,
             1
@@ -82,15 +82,15 @@ fun printECycle(g: Graph) {
 fun printEChain(g: Graph, start: Int) {
     var numEvenVer = 0
     var oddVer = 0
-    for (i in g.numVer - 1 downTo 0) if (g.deg(i) % 2 === 0) numEvenVer++ else oddVer = i
-    if (g.numVer - numEvenVer === 2) {
+    for (i in g.numVer - 1 downTo 0) if (g.deg(i) % 2 == 0) numEvenVer++ else oddVer = i
+    if (g.numVer - numEvenVer == 2) {
         println("There is an Euler chain:")
         if (start == 0) println(
             eulerCycle(
                 g,
                 oddVer + 1
             )
-        ) else if (g.deg(start) % 2 === 1) println(
+        ) else if (g.deg(start) % 2 == 1) println(
             eulerCycle(
                 g,
                 start

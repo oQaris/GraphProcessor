@@ -7,10 +7,9 @@ import java.util.regex.Pattern
  * Класс включает в себя пользовательский интерфейс
  * Каждый метод выводит, либо запрашивает ввод с консоли
  * Никакие исключения не кидаются, все ошибки выводятся на консоль
- * Функции, помеченные префиксом "_" возвращают введённое значение
  */
 object GPInterface {
-    private val NAME_PATTERN = Pattern.compile("""^[_A-z0-9]*((\s)*[_A-z0-9])*${'$'}""")
+    private val NAME_PATTERN = Pattern.compile("""^[A-z0-9]*((\s)*[A-z0-9])*${'$'}""")
     private const val MAX_TYPE_IN = 3
 
     private fun inputInt(inf: Int = Int.MIN_VALUE, sup: Int = Int.MAX_VALUE): Int {
@@ -25,9 +24,6 @@ object GPInterface {
             }
         }
     }
-
-    private fun readString() = generateSequence { System.`in`.read().toChar() }
-        .dropWhile { it.isWhitespace() }.takeWhile { !it.isWhitespace() }.joinToString("")
 
     private fun inputName(): String {
         while (true) {
@@ -90,7 +86,7 @@ object GPInterface {
         if (flag) print("and ")
     }
 
-    fun entryNoOrgraph(g: Array<Array<Int?>>) {
+    private fun entryNoOrgraph(g: Array<Array<Int?>>) {
         println("Формат ввода:\nТекущая_вершина:  Список_Исходящих_Из_Неё...\nДля окончания ввода - 0")
         for (i in g.indices) {
             // Ищем и выводим уже существующие смежные
@@ -106,7 +102,7 @@ object GPInterface {
         }
     }
 
-    fun entryNoOrgraphW(g: Array<Array<Int?>>) {
+    private fun entryNoOrgraphW(g: Array<Array<Int?>>) {
         println("Формат ввода:\nТекущая_вершина:  Список_Исходящих_Из_Неё_и_Их_Веса...\nПосле каждой вершины пишите вес получившейся дуги через пробел\nДля окончания ввода - 0")
         for (i in g.indices) {
             printOldVer(g, i)
@@ -121,7 +117,7 @@ object GPInterface {
         }
     }
 
-    fun entryOrgraph(g: Array<Array<Int?>>) {
+    private fun entryOrgraph(g: Array<Array<Int?>>) {
         println("Формат ввода:\nТекущая_вершина:  Список_Исходящих_Из_Неё...\nДля окончания ввода - 0")
         for (i in g.indices) {
             printOldVer(g, i)
@@ -132,7 +128,7 @@ object GPInterface {
         }
     }
 
-    fun entryOrgraphW(g: Array<Array<Int?>>) {
+    private fun entryOrgraphW(g: Array<Array<Int?>>) {
         println("Формат ввода:\nТекущая_вершина:  Список_Исходящих_Из_Неё_и_Их_Веса...\nПосле каждой вершины пишите вес получившейся дуги через пробел\nДля окончания ввода - 0")
         for (i in g.indices) {
             printOldVer(g, i)
@@ -143,7 +139,7 @@ object GPInterface {
         }
     }
 
-    fun entryAdjacencyMatrix(g: Array<Array<Int?>>) {
+    private fun entryAdjacencyMatrix(g: Array<Array<Int?>>) {
         println("Введите саму матрицу смежности.\nДля обозначения несмежных вершин введите не число (обычно '-')")
         for (i in g.indices) {
             for (j in g.indices) {

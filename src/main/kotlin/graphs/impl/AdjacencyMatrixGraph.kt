@@ -138,6 +138,16 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
         return com
     }
 
+    fun inVer(ver: Int): LinkedList<Int> {
+        checkCorrectVer(ver)
+        val com = LinkedList<Int>()
+        for (i in data.indices) {
+            if (i != ver && data[i][ver] != null)
+                com.add(i)
+        }
+        return com
+    }
+
     override fun getEdges(): MutableList<Edge> {
         val out: MutableList<Edge> = ArrayList()
         for (i in data.indices) {

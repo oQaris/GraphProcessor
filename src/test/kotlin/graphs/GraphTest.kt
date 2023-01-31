@@ -16,9 +16,10 @@ internal class GraphTest {
         EdgeListGraph("null", 4)
     )
 
-    @Test
-    fun orientedTest() {
-        val graph: Graph = EdgeListGraph("null", 4).apply {
+    @ParameterizedTest
+    @MethodSource("graphsProvider")
+    fun orientedTest(graph: Graph) {
+        graph.apply {
             oriented = true
             addEdg(0 edg 1 w 3)
             addEdg(2 edg 1 w 0)

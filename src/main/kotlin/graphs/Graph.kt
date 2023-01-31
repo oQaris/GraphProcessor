@@ -204,6 +204,6 @@ interface Graph {
      * @throws GraphException Если хотя бы одна вершина из набора не содержится в графе
      */
     fun checkCorrectVer(vararg vertex: Int) {
-        for (ver in vertex) requireG(ver in 0 until numVer) { "Некорректная вершина!" }
+        for (ver in vertex) requireG(ver in 0 until numVer) { "Некорректная вершина: $ver" }
     }
 }

@@ -18,10 +18,10 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.1")
     // Console
-    implementation("info.picocli:picocli:4.7.0")
+    kapt("info.picocli:picocli-codegen:4.7.1")
+    implementation("info.picocli:picocli:4.7.1")
     implementation("info.picocli:picocli-jansi-graalvm:1.2.0")
     implementation("org.fusesource.jansi:jansi:2.4.0")
-    kapt("info.picocli:picocli-codegen:4.7.0")
     // Algorithm
     implementation("com.udojava:EvalEx:2.7")
     implementation("com.github.shiguruikai:combinatoricskt:1.6.0")
