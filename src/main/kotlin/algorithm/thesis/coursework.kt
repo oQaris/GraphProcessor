@@ -43,7 +43,7 @@ fun findSpanningKConnectedSubgraph(
         .reversed() // В начале графы с максимальной оценкой
         .thenBy { it.rawEdges.size })
     run { // Препроцессинг
-        val edges = g.getEdges()
+        val edges = g.getEdges().toMutableList()
         if (!strategy.reSort)
             strategy.sortEdges(edges, g)
         leaves.add(Subgraph(g, k, strategy, edges))

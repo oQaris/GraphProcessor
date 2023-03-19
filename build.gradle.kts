@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.2")
     // Console
     kapt("info.picocli:picocli-codegen:4.7.1")
     implementation("info.picocli:picocli:4.7.1")

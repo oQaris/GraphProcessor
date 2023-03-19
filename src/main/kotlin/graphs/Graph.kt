@@ -167,14 +167,23 @@ interface Graph {
      * @return Список int, номеров вершин, смежных с данной
      * @throws GraphException При некорректном значении номера вершины ver
      */
-    fun com(ver: Int): MutableList<Int>
+    fun com(ver: Int): List<Int>
 
     /**
      * Получить список рёбер графа (связанных вершин).
      *
      * @return Список рёбер в графе
      */
-    fun getEdges(): MutableList<Edge>
+    fun getEdges(): List<Edge>
+
+    /**
+     * Получить список номеров вершин графа.
+     *
+     * @return Список вершин в графе
+     */
+    fun getVertices(): List<Int> {
+        return (0 until numVer).toList()
+    }
 
     /**
      * Создать глубокую копию графа (той же имплементации).
@@ -188,7 +197,7 @@ interface Graph {
      *
      * @return Список пар всевозможных вершин графа
      */
-    fun getPairVer(): MutableList<Pair<Int, Int>> {
+    fun getPairVer(): List<Pair<Int, Int>> {
         val n = numVer
         val out = ArrayList<Pair<Int, Int>>(n * n - n)
         for (i in 0 until n)
@@ -200,10 +209,10 @@ interface Graph {
     /**
      * Проверяет, все ли вершины из набора содержатся в данном графе.
      *
-     * @param vertex Набор вершин для проверки их допустимости в данном графе
+     * @param vertices Набор вершин для проверки их допустимости в данном графе
      * @throws GraphException Если хотя бы одна вершина из набора не содержится в графе
      */
-    fun checkCorrectVer(vararg vertex: Int) {
-        for (ver in vertex) requireG(ver in 0 until numVer) { "Некорректная вершина: $ver" }
+    fun checkCorrectVer(vararg vertices: Int) {
+        for (ver in vertices) requireG(ver in 0 until numVer) { "Некорректная вершина: $ver" }
     }
 }

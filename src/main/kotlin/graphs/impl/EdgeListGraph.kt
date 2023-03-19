@@ -77,8 +77,7 @@ class EdgeListGraph(
         checkCorrectVer(u, v)
         remEdg(u, v)
         if (!oriented) {
-            val (min, max) = norm(u, v)
-            edgesSet.add(min edg max w weight)
+            edgesSet.add(norm(u, v) w weight)
         } else edgesSet.add(u edg v w weight)
     }
 
@@ -110,21 +109,31 @@ class EdgeListGraph(
         return edgesSet.count { if (isOut) it.first == ver else it.second == ver }
     }
 
-    override fun com(ver: Int): MutableList<Int> {
+    override fun com(ver: Int): List<Int> {
         checkCorrectVer(ver)
-        return edgesSet.filter { it.first == ver }.map { it.second }.toMutableList()
+        return if (oriented)
+            edgesSet.filter { it.first == ver }.map { it.second }.toList()
+        else buildList {
+            edgesSet.forEach { e ->
+                if (e.first == ver)
+                    add(e.second)
+                if (e.second == ver)
+                    add(e.first)
+            }
+        }
     }
 
-    override fun getEdges(): MutableList<Edge> {
-        return edgesSet.toMutableList()
+    override fun getEdges(): List<Edge> {
+        return edgesSet.toList()
     }
 
     // Задаёт естественный порядок для хранения в неориентированном графе
-    private fun norm(u: Int, v: Int) = if (u < v) u to v else v to u
+    private fun norm(u: Int, v: Int) = if (u < v) u edg v else v edg u
 
     private fun norm(edge: Edge): Edge {
-        val (u, v) = norm(edge.first, edge.second)
-        return u edg v w edge.weight
+        if (edge.first <= edge.second)
+            return edge
+        return edge.revert()
     }
 
     override fun toString() = standardToString(this)

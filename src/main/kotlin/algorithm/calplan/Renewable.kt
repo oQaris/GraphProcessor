@@ -4,7 +4,7 @@ import com.github.shiguruikai.combinatoricskt.CartesianProductGenerator
 import com.github.shiguruikai.combinatoricskt.Combinatorics
 import graphs.impl.AdjacencyMatrixGraph
 
-val g = AdjacencyMatrixGraph("cal", 9).apply {
+private val g = AdjacencyMatrixGraph("cal", 9).apply {
     oriented = true
     addEdg(1, 2)
     addEdg(1, 3)
@@ -17,7 +17,7 @@ val g = AdjacencyMatrixGraph("cal", 9).apply {
     addEdg(6, 8)
 }
 
-val chains = arrayOf(
+private val chains = arrayOf(
     listOf(1, 2, 3, 5, 8),
     listOf(4, 7),
     listOf(6),
