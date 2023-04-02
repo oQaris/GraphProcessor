@@ -1,20 +1,19 @@
 package algorithm.clustering
 
+import algorithm.BenchmarkTestBase
 import algorithm.thesis.Event
 import console.algorithm.clustering.clustering
-import graphs.Graph
 import org.junit.jupiter.api.Test
 import storage.Generator
 import storage.SetFileGraph
 import utils.*
 import java.io.File
 
-typealias Driver = (Event) -> Unit
-
-class ClusteringBenchmark {
+class ClusteringBenchmark : BenchmarkTestBase() {
 
     @Test
     fun `Number of vertices in the graph`() {
+        println("Heap max size: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "MB")
         val pArr = listOf(1 / 3f, 1 / 2f, 2 / 3f, 1f)
         val isNewDataGen = true
 
@@ -22,70 +21,26 @@ class ClusteringBenchmark {
         if (isNewDataGen) sfg.clear()
 
         pArr.forEach { p ->
-            println("$p;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;")
-            for (ver in 15..20) {
+            println("$p;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;Mean_tree;Mode_tree;Median_tree;Max_tree;Min_tree;")
+            for (ver in 1..15) {
                 val gen = Generator(
                     numVer = ver,
                     p = p,
                     except = sfg.values
                 )
-                savedTest("$p-$ver", 100, isNewDataGen, gen, sfg) { graph, driver ->
+                val graphGetter = sfgGetter("$p-$ver", isNewDataGen, gen, sfg)
+                val times = timedEvents(100, graphGetter) { graph, driver ->
                     clustering(graph, 3, driver)
                 }
+                val finish = times[Event.OFF]!!.flatten()
+                val record = times[Event.ADD]!!.map { it.last() }
+                val deeps = times[Event.EXE]!!.map { it.count().toLong() }
+                println(
+                    "$ver;${finish.mean()};${finish.mode()};${finish.median()};${finish.max()};${finish.min()};" +
+                    "${record.mean()};${record.mode()};${record.median()};${record.max()};${record.min()};" +
+                    "${deeps.mean()};${deeps.mode()};${deeps.median()};${deeps.max()};${deeps.min()};"
+                )
             }
         }
-    }
-
-    private fun savedTest(
-        id: String,
-        expCount: Int,
-        isNewDataGen: Boolean,
-        generator: Generator,
-        sfg: SetFileGraph,
-        timedFunc: (Graph, Driver) -> Unit
-    ) {
-        val times = mutableListOf<Long>()
-        val timesRec = mutableListOf<Long>()
-        val deepsTree = mutableListOf<Long>()
-
-        repeat(expCount) { numEx ->
-            val name = "${id}_${numEx}"
-            val graph =
-                if (isNewDataGen)
-                    try {
-                        generator.name = name
-                        generator.build().apply { sfg.add(this) }
-                    } catch (e: Exception) {
-                        return@repeat
-                    }
-                else sfg[name]
-
-            val stdTimer = Timestamps()
-            val recTimer = Timestamps()
-            var deepTree = 0
-            val driver: Driver = {
-                when (it) {
-                    Event.OFF -> stdTimer.make()
-                    Event.ADD -> recTimer.make()
-                    Event.EXE -> deepTree++
-                    else -> {}
-                }
-            }
-            timedFunc(graph, driver)
-
-            times.add(stdTimer.times.single())
-            if (recTimer.times.isNotEmpty())
-                timesRec.add(recTimer.times.last())
-            deepsTree.add(deepTree.toLong())
-        }
-        if (isNewDataGen) {
-            sfg.push(true)
-            sfg.clear()
-        }
-        println(
-            "$id;${times.mean()};${times.mode()};${times.median()};${times.max()};${times.min()};" +
-                    "${timesRec.mean()};${timesRec.mode()};${timesRec.median()};${timesRec.max()};${timesRec.min()};" +
-                    "${deepsTree.mean()};${deepsTree.mode()};${deepsTree.median()};${deepsTree.max()};${deepsTree.min()};"
-        )
     }
 }
