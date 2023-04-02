@@ -22,7 +22,7 @@ internal class SortEdgesDemo {
                 findSpanningKConnectedSubgraph(
                     Generator(n, p = 1f).build(), 3, strategy = strategy, driver = { timer.make() }
                 )
-                return timer.getLast()
+                return timer.times.last
             }
 
             print("$n;")
@@ -68,7 +68,7 @@ internal class SortEdgesDemo {
                         get() = isResort
                 }, driver = { timer.make() }
             )
-            return timer.getLast()
+            return timer.times.last
         }
 
         println("n;with_resort;no_resort;")

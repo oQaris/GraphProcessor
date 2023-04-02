@@ -5,13 +5,10 @@ import algorithm.connectivity
 import algorithm.localEdgeConnectivity
 import graphs.Graph
 import graphs.requireG
-import mu.KotlinLogging
 import java.util.*
 
-private val logger = KotlinLogging.logger {}
-
 enum class Event {
-    ADD, ON, OFF
+    ADD, EXE, ON, OFF
 }
 
 data class Result(val answer: Graph, val rec: Int)

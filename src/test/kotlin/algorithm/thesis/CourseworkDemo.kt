@@ -77,9 +77,9 @@ internal class CourseworkDemo {
             val timer = Timestamps()
             findSpanningKConnectedSubgraph(graph, 2, driver = { timer.make() })
 
-            times.add(timer.get().last())
-            if (timer.get().size >= 3)
-                timesRec.add(timer.get().let { it[it.size - 3] })
+            times.add(timer.times.last())
+            if (timer.times.size >= 3)
+                timesRec.add(timer.times.let { it[it.size - 3] })
         }
         if (isNewDataGen) {
             sfg.push(true)
@@ -107,7 +107,7 @@ internal class CourseworkDemo {
                 try {
                     val timer = Timestamps()
                     findSpanningKConnectedSubgraph(it, k, driver = { timer.make() })
-                    timestamps.add(timer.getLast())
+                    timestamps.add(timer.times.last)
                 } catch (e: Exception) {
                     timestamps.add(0L)
                 }
@@ -125,9 +125,9 @@ internal class CourseworkDemo {
             val timer = Timestamps()
             findSpanningKConnectedSubgraph(graph, k, driver = { timer.make() })
             println(
-                "$k;${timer.getLast()};" +
-                        "${timer.get().dropLast(1).last()};" +
-                        "${timer.get().dropLast(2).last()};"
+                "$k;${timer.times.last};" +
+                        "${timer.times.dropLast(1).last()};" +
+                        "${timer.times.dropLast(2).last()};"
             )
         }
     }
@@ -159,8 +159,8 @@ internal class CourseworkDemo {
                         localConnectivity = ::localVertexConnectivity,
                         driver = { timerV.make() }
                     )
-                    timesListE.add(timerE.getLast())
-                    timesListV.add(timerV.getLast())
+                    timesListE.add(timerE.times.last)
+                    timesListV.add(timerV.times.last)
                 }
             } catch (_: GraphGenerationException) {
                 continue
@@ -182,7 +182,7 @@ internal class CourseworkDemo {
                 val timer = Timestamps()
                 val g = Generator(n, p = 1f, weights = (0..lim)).build()
                 findSpanningKConnectedSubgraph(g, k, strategy = WeightedStrategy(), driver = { timer.make() })
-                timesList.add(timer.getLast())
+                timesList.add(timer.times.last)
             }
 
             println("$lim;${timesList.median()}")
@@ -205,7 +205,7 @@ internal class CourseworkDemo {
                 val timer = Timestamps()
                 findSpanningKConnectedSubgraph(graph, conn, driver = { timer.make() })
 
-                timer.get().takeLast(lastTimesCount)
+                timer.times.takeLast(lastTimesCount)
                     .forEachIndexed { index, time -> timesArr[index].add(time) }
             }
             val times = timesArr.map { it.median() }
@@ -241,7 +241,7 @@ internal class CourseworkDemo {
                     println("Пропуск")
                     continue
                 }
-                timer.get().takeLast(lastTimesCount)
+                timer.times.takeLast(lastTimesCount)
                     .forEachIndexed { index, time -> timesArr[index].add(time) }
             }
             val times = timesArr.map { it.median() }

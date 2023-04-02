@@ -2,6 +2,7 @@ package console.algorithm.clustering
 
 import algorithm.findComponents
 import algorithm.isCluster
+import algorithm.thesis.Event
 import graphs.Edge
 import graphs.Graph
 import graphs.impl.EdgeListGraph
@@ -18,14 +19,19 @@ class Subgraph(val graph: Graph, var score: Int, val rawEdges: MutableList<Edge>
     }
 }
 
-fun clustering(base: Graph, maxSizeCluster: Int): Graph? {
+fun clustering(
+    base: Graph,
+    maxSizeCluster: Int,
+    driver: (Event) -> Unit = {}
+): Graph? {
     require(maxSizeCluster <= 3)
     val leaves = PriorityQueue(ascLastComparator)
     var rec = Int.MAX_VALUE
     var answer: Graph? = null
 
-    var exec = 0 //todo
     leaves.add(Subgraph(base.clone(), 0, base.getEdges().toMutableList()))
+    driver.invoke(Event.ON)
+
     while (leaves.isNotEmpty()) {
         val curElem = leaves.poll()
         if (curElem.score >= rec)
@@ -39,7 +45,7 @@ fun clustering(base: Graph, maxSizeCluster: Int): Graph? {
         if (maxSizeComponent(slice(curElem.graph, fixedEdges)) > maxSizeCluster)
             continue
 
-        exec++
+        driver.invoke(Event.EXE)
         leaves.add(curElem)
 
         val edge = curElem.rawEdges.removeFirst()
@@ -47,14 +53,15 @@ fun clustering(base: Graph, maxSizeCluster: Int): Graph? {
         val newScore = curElem.score + 1
         // проверим, что граф кластерный
         if (isCluster(newG) && maxSizeComponent(newG) <= maxSizeCluster) {
+            driver.invoke(Event.ADD)
             rec = newScore
             answer = newG
-            //todo надо удалять не перспективные
+            leaves.removeIf { it.score >= rec }
         } else {
             leaves.add(Subgraph(newG, newScore, curElem.rawEdges.toMutableList()))
         }
     }
-    println(exec)
+    driver.invoke(Event.OFF)
     return answer
 }
 

@@ -15,7 +15,7 @@ class Generator(
     private val numVer: Int,
     _numEdge: Int? = null,
     p: Float? = null,
-    private val name: String? = null,
+    var name: String? = null,
     private val weights: IntRange = 1..1,
     private val conn: Int? = null,
     private val localConn: LocalConnectivity = ::localEdgeConnectivity,

@@ -40,6 +40,10 @@ kapt {
     }
 }
 
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-Xmx8g")
+}
+
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = "console.MainKt"
