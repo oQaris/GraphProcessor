@@ -63,7 +63,7 @@ tasks.withType<Jar> {
 
 tasks.test {
     useJUnitPlatform()
-    maxHeapSize = "8g"
+    maxHeapSize = "32g"
 }
 
 tasks.withType<KotlinCompile> {

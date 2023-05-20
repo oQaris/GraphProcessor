@@ -14,7 +14,7 @@ fun redo(g: Graph, lambda: (u: Int, v: Int, w: Int) -> Int): Int {
     return count
 }
 
-fun isCluster(g: Graph): Boolean {
+fun isClustering(g: Graph): Boolean {
     return findComponents(g).withIndex()
         .groupBy { it.value }.all { (_, values) ->
             val vertexInCmp = values.map { it.index }

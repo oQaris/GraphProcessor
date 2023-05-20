@@ -1,16 +1,15 @@
 package algorithm.clustering
 
 import algorithm.findComponents
-import algorithm.isCluster
-import console.algorithm.clustering.Subgraph
-import console.algorithm.clustering.ascLastComparator
-import console.algorithm.clustering.clustering
-import console.algorithm.clustering.slice
+import algorithm.isClustering
+import algorithm.thesis.Event
+import console.algorithm.clustering.*
 import graphs.edg
 import graphs.impl.AdjacencyMatrixGraph
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import storage.SetFileGraph
 import java.util.*
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -60,34 +59,90 @@ internal class ClusteringTest {
     }
 
     @Test
+    fun correctCriterionOfClusteringTest() {
+        assertTrue(correctCriterionOfClustering(findComponents(testG), testG))
+        val noClusteringApriori = testG.clone().apply {
+            addEdg(1 edg 6)
+        }
+        assertFalse(correctCriterionOfClustering(findComponents(noClusteringApriori), noClusteringApriori))
+    }
+
+    @Test
     fun isClusterTest() {
-        assertFalse(isCluster(testG))
+        assertFalse(isClustering(testG))
         val cluster = testG.clone().apply {
             addEdg(0 edg 5)
             addEdg(0 edg 3)
         }
-        assertTrue(isCluster(cluster))
-        assertTrue(isCluster(AdjacencyMatrixGraph("empty", 10)))
+        assertTrue(isClustering(cluster))
+        assertTrue(isClustering(AdjacencyMatrixGraph("empty", 10)))
     }
 
     @Test
-    fun clusteringTest() {
-        val cl3 = AdjacencyMatrixGraph("cl3", 4).apply {
-            addEdg(0 edg 1)
-            addEdg(1 edg 2)
-            addEdg(2 edg 3)
-            addEdg(3 edg 0)
-            addEdg(3 edg 1)
+    fun clustering3FullTest() {
+        val cntProvider = createDriver()
+        val answer = clustering(SetFileGraph()["star"], 3, cntProvider.driver)!!
+
+        assertEquals(4, answer.numEdg)
+        assertEquals(2, answer.getVertices().filter { answer.deg(it) == 1 }.size)
+        assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
+
+        assertEquals(107, cntProvider.countExe)
+        assertEquals(10, cntProvider.countAdd)
+    }
+
+    private val cl3 = AdjacencyMatrixGraph("cl3", 4).apply {
+        addEdg(0 edg 1)
+        addEdg(1 edg 2)
+        addEdg(2 edg 3)
+        addEdg(3 edg 0)
+        addEdg(3 edg 1)
+    }
+
+    @Test
+    fun clustering3Test() {
+        val cntProvider = createDriver()
+        val answer = clustering(cl3, 3, cntProvider.driver)!!
+
+        assertEquals(3, answer.numEdg)
+        assertEquals(1, answer.getVertices().filter { answer.deg(it) == 0 }.size)
+        assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
+
+        assertEquals(9, cntProvider.countExe)
+        assertEquals(2, cntProvider.countAdd)
+    }
+
+    @Test
+    fun clustering2Test() {
+        val cntProvider = createDriver()
+        val answer = clustering(cl3, 2, cntProvider.driver)!!
+
+        assertEquals(2, answer.numEdg)
+        assertTrue(answer.getVertices().all { answer.deg(it) != 0 })
+
+        assertEquals(11, cntProvider.countExe)
+        assertEquals(2, cntProvider.countAdd)
+    }
+
+    @Test
+    fun clustering1Test() {
+        val cntProvider = createDriver()
+        val answer = clustering(cl3, 1, cntProvider.driver)!!
+
+        assertTrue(answer.getVertices().all { answer.deg(it) == 0 })
+
+        assertEquals(5, cntProvider.countExe)
+        assertEquals(1, cntProvider.countAdd)
+    }
+
+    private fun createDriver() = object {
+        var countExe: Int = 0
+        var countAdd: Int = 0
+        val driver: (Event) -> Unit = {
+            if (it == Event.EXE)
+                countExe++
+            else if (it == Event.ADD)
+                countAdd++
         }
-        val answer3 = clustering(cl3, 3)!!
-        assertEquals(3, answer3.numEdg)
-        assertEquals(1, answer3.getVertices().filter { answer3.deg(it) == 0 }.size)
-
-        val answer2 = clustering(cl3, 2)!!
-        assertEquals(2, answer2.numEdg)
-        assertTrue(answer2.getVertices().all { answer2.deg(it) != 0 })
-
-        val answer1 = clustering(cl3, 1)!!
-        assertTrue(answer1.getVertices().all { answer1.deg(it) == 0 })
     }
 }
