@@ -5,6 +5,7 @@ import graphs.Graph
 import storage.Generator
 import storage.SetFileGraph
 import utils.Timestamps
+import java.util.concurrent.TimeUnit
 
 typealias Driver = (Event) -> Unit
 
@@ -21,7 +22,7 @@ open class BenchmarkTestBase {
         repeat(expCount) { numEx ->
             val graph = graphGetter(numEx)
 
-            val timersByEvent = Event.values().associateWith { Timestamps() }
+            val timersByEvent = Event.values().associateWith { Timestamps(TimeUnit.SECONDS) }
             val driver: Driver = {
                 timersByEvent[it]!!.make()
             }

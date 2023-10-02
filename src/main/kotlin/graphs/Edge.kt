@@ -27,3 +27,8 @@ infix fun Edge.w(weight: Int) = Edge(first, second, weight)
  * Преобразует пару вершин в ребро с заданным весом
  */
 fun Pair<Int, Int>.toEdge(weight: Int) = Edge(first, second, weight)
+
+/**
+ * Преобразует пару вершин в ребро с единичным весом
+ */
+fun Pair<Int, Int>.toEdge() = Edge(first, second, 1)

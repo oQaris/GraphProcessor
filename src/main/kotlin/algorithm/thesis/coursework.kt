@@ -8,7 +8,7 @@ import graphs.requireG
 import java.util.*
 
 enum class Event {
-    ADD, EXE, ON, OFF
+    REC, EXE, ON, OFF
 }
 
 data class Result(val answer: Graph, val rec: Int)
@@ -63,7 +63,7 @@ fun findSpanningKConnectedSubgraph(
             )
             val newRec = strategy.record(newG)
             if (newRec < rec) {
-                driver.invoke(Event.ADD)
+                driver.invoke(Event.REC)
                 rec = newRec
                 minG = newG
                 leaves.removeIf { it.score >= rec }

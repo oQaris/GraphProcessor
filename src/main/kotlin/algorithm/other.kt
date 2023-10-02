@@ -24,6 +24,18 @@ fun isClustering(g: Graph): Boolean {
         }
 }
 
+fun isClusteringMaxSize(g: Graph, maxSizeCluster: Int): Boolean {
+    return findComponents(g).withIndex()
+        .groupBy { it.value }.all { (_, values) ->
+            if (values.size > maxSizeCluster)
+                return false
+            val vertexInCmp = values.map { it.index }
+            vertexInCmp.combinations(2).all {
+                g.isCom(it[0], it[1])
+            }
+        }
+}
+
 fun findComponents(g: Graph): IntArray {
     val components = IntArray(g.numVer)
 
