@@ -14,6 +14,7 @@ open class BenchmarkTestBase {
     protected fun timedEvents(
         expCount: Int,
         graphGetter: (Int) -> Graph,
+        timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
         timedFunc: (Graph, Driver) -> Unit
     ): Map<Event, List<List<Long>>> {
 
@@ -22,7 +23,7 @@ open class BenchmarkTestBase {
         repeat(expCount) { numEx ->
             val graph = graphGetter(numEx)
 
-            val timersByEvent = Event.values().associateWith { Timestamps(TimeUnit.SECONDS) }
+            val timersByEvent = Event.values().associateWith { Timestamps(timeUnit) }
             val driver: Driver = {
                 timersByEvent[it]!!.make()
             }

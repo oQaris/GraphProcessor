@@ -38,7 +38,6 @@ fun isClusteringMaxSize(g: Graph, maxSizeCluster: Int): Boolean {
 
 fun findComponents(g: Graph): IntArray {
     val components = IntArray(g.numVer)
-
     var newCmp = 0
     g.getVertices().forEach { v ->
         if (components[v] == 0)

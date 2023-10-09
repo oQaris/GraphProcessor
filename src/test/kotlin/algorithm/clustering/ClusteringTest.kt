@@ -13,7 +13,6 @@ import org.junit.jupiter.api.assertAll
 import storage.SetFileGraph
 import java.util.*
 import kotlin.test.assertFalse
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 internal class ClusteringTest {
@@ -82,12 +81,10 @@ internal class ClusteringTest {
 
     @Test
     fun preSortEdgesTest() {
-        val node = Subgraph(testG)
-        assertEquals(mutableListOf(0 edg 2, 1 edg 4, 2 edg 3, 2 edg 5, 3 edg 5), node.rawEdges)
-
-        val newNode = preSortEdges(node, 0 edg 5)
-        assertSame(node, newNode)
-        assertEquals(mutableListOf(0 edg 2, 2 edg 5, 3 edg 5, 1 edg 4, 2 edg 3), newNode.rawEdges)
+        val node = Subgraph(testG, 0, testG.getEdges().map { it.first to it.second }.toMutableList())
+        assertEquals(mutableListOf(0 to 2, 1 to 4, 2 to 3, 2 to 5, 3 to 5), node.rawDetails)
+        resortDetails(node, 0 to 5)
+        assertEquals(mutableListOf(0 to 2, 2 to 5, 3 to 5, 1 to 4, 2 to 3), node.rawDetails)
     }
 
     @Test
@@ -100,8 +97,8 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(89, cntProvider.countExe) },
-            { assertEquals(10, cntProvider.countAdd) }
+            { assertEquals(149, cntProvider.countExe) },
+            { assertEquals(1, cntProvider.countRec) }
         )
     }
 
@@ -114,6 +111,18 @@ internal class ClusteringTest {
     }
 
     @Test
+    fun clustering4Test() {
+        val cntProvider = createDriver()
+        val answer = clustering(cl3, 4, cntProvider.driver)!!
+
+        assertEquals(6, answer.numEdg)
+        assertAll(
+            { assertEquals(6, cntProvider.countExe) },
+            { assertEquals(1, cntProvider.countRec) }
+        )
+    }
+
+    @Test
     fun clustering3Test() {
         val cntProvider = createDriver()
         val answer = clustering(cl3, 3, cntProvider.driver)!!
@@ -123,8 +132,8 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(8, cntProvider.countExe) },
-            { assertEquals(2, cntProvider.countAdd) }
+            { assertEquals(12, cntProvider.countExe) },
+            { assertEquals(1, cntProvider.countRec) }
         )
     }
 
@@ -137,8 +146,8 @@ internal class ClusteringTest {
         assertTrue(answer.getVertices().all { answer.deg(it) != 0 })
 
         assertAll(
-            { assertEquals(9, cntProvider.countExe) },
-            { assertEquals(2, cntProvider.countAdd) }
+            { assertEquals(13, cntProvider.countExe) },
+            { assertEquals(1, cntProvider.countRec) }
         )
     }
 
@@ -151,18 +160,18 @@ internal class ClusteringTest {
 
         assertAll(
             { assertEquals(5, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countAdd) }
+            { assertEquals(1, cntProvider.countRec) }
         )
     }
 
     private fun createDriver() = object {
         var countExe: Int = 0
-        var countAdd: Int = 0
+        var countRec: Int = 0
         val driver: (Event) -> Unit = {
             if (it == Event.EXE)
                 countExe++
             else if (it == Event.REC)
-                countAdd++
+                countRec++
         }
     }
 }
