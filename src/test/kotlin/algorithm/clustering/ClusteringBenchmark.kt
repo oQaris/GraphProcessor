@@ -69,7 +69,7 @@ class ClusteringBenchmark : BenchmarkTestBase() {
         )
         val input = gen.build()
         println("Random graph:\n$input")
-        val result = clustering(gen.build(), 3)
+        val result = clustering(input, 3)
         println("Clustering graph:\n$result")
         println("Distance:\n${distance(input, result!!)}")
     }

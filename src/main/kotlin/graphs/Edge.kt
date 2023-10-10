@@ -11,6 +11,11 @@ data class Edge(
      * Меняет направление ребра
      */
     fun revert() = Edge(second, first, weight)
+
+    /**
+     * Преобразовывает ребро в пару вершин, отсекая информацию о весе
+     */
+    fun toPair() = first to second
 }
 
 /**

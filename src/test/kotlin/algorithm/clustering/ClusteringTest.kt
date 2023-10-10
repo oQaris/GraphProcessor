@@ -82,10 +82,45 @@ internal class ClusteringTest {
 
     @Test
     fun preSortEdgesTest() {
-        val node = Subgraph(testG, 0, testG.getEdges().map { it.first to it.second }.toMutableList())
+        val node = Subgraph(testG, 0, testG.getEdges().map { it.toPair() }.toMutableList())
         assertEquals(mutableListOf(0 to 2, 1 to 4, 2 to 3, 2 to 5, 3 to 5), node.rawDetails)
         resortDetails(node, 0 to 5)
         assertEquals(mutableListOf(0 to 2, 2 to 5, 3 to 5, 1 to 4, 2 to 3), node.rawDetails)
+    }
+
+    @Test
+    fun onFixingEdgePostprocessTest() {
+        val testG = AdjacencyMatrixGraph("cmp34", 7).apply {
+            addEdg(0 edg 1)
+            addEdg(0 edg 2)
+            addEdg(0 edg 3)
+            addEdg(1 edg 2)
+            addEdg(1 edg 3)
+            addEdg(2 edg 3)
+
+            addEdg(4 edg 5)
+            addEdg(4 edg 6)
+            addEdg(5 edg 6)
+
+            addEdg(1 edg 5)
+            addEdg(3 edg 4)
+        }
+        val node = Subgraph(
+            testG,
+            0,
+            (testG.getPairVer() - setOf(0 to 1, 0 to 3, 1 to 2, 2 to 3, 4 to 5, 5 to 6, 4 to 6)).toMutableList()
+        )
+        onFixingEdgePostprocess(node, 4)
+        assertEquals(0, node.score)
+        assertEquals(11, node.graph.numEdg)
+
+        node.rawDetails -= setOf(0 to 2, 1 to 3)
+        onFixingEdgePostprocess(node, 4)
+        assertEquals(2, node.score)
+        assertEquals(9, node.graph.numEdg)
+        val exceptPairs = setOf(1 to 5, 3 to 4)
+        assertTrue(node.rawDetails.intersect(exceptPairs).isEmpty())
+        assertTrue(exceptPairs.all { !node.graph.isCom(it) })
     }
 
     @Test
@@ -98,7 +133,7 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(2, cntProvider.countExe) },
+            { assertEquals(87, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }
@@ -114,9 +149,19 @@ internal class ClusteringTest {
         assertEquals(answer3, answer4)
 
         assertAll(
-            { assertEquals(97, cntProvider.countExe) },
+            { assertEquals(96, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
+    }
+
+    @Test
+    fun clusteringBigTest() {
+        val cntProvider = createDriver()
+        val input = SetFileGraph()["Undir_17-34"]
+        val answer = clustering(input, 3, cntProvider.driver)!!
+
+        println(answer)
+        assertEquals(22, distance(input, answer))
     }
 
     private val cl3 = AdjacencyMatrixGraph("cl3", 4).apply {
@@ -149,7 +194,7 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(2, cntProvider.countExe) },
+            { assertEquals(7, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }
@@ -163,7 +208,7 @@ internal class ClusteringTest {
         assertTrue(answer.getVertices().all { answer.deg(it) != 0 })
 
         assertAll(
-            { assertEquals(1, cntProvider.countExe) },
+            { assertEquals(3, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }

@@ -81,10 +81,10 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
         .filter {
             // value - группа с одинаковыми iv.value (номером компоненты)
             it.value.size == sizeCluster &&
-                    // поиск кластеров
+                    // проверка кластерности фиксированного подмножества
                     it.value.combinations(2).all { iv ->
                         // iv.index - номер вершины
-                        node.graph.isCom(iv[0].index, iv[1].index)
+                        iv[0].index to iv[1].index !in node.rawDetails
                     }
         }.flatMap { (_, curCmp) ->
             val curCmpVer = curCmp.map { it.index }.toSet()
@@ -95,8 +95,8 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
         }.toSet()
     return node.apply {
         graph.apply { extraEdges.forEach { remEdg(it) } }
-        score + extraEdges.size
-        rawDetails - extraEdges
+        score += extraEdges.size
+        rawDetails -= extraEdges
     }
 }
 
