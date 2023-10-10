@@ -88,4 +88,36 @@ internal class GraphTest {
     @Test
     fun remEdgTest() {
     }
+
+    @ParameterizedTest
+    @MethodSource("graphsProvider")
+    fun getEdgesAndPairVerSortedTest(graph: Graph) {
+        graph.apply {
+            addEdg(3 edg 2)
+            addEdg(0 edg 1)
+            addEdg(2 edg 0)
+            addEdg(1 edg 2)
+        }
+        assertEquals(listOf(0 edg 1, 0 edg 2, 1 edg 2, 2 edg 3), graph.getEdges())
+        assertEquals(listOf(0 to 1, 0 to 2, 0 to 3, 1 to 2, 1 to 3, 2 to 3), graph.getPairVer().toMutableList())
+        graph.oriented = true
+        //todo пофиксить для EdgeListGraph
+        assertEquals(listOf(0 edg 1, 0 edg 2, 1 edg 0, 1 edg 2, 2 edg 0, 2 edg 1, 2 edg 3, 3 edg 2), graph.getEdges())
+        assertEquals(
+            listOf(
+                0 to 1,
+                0 to 2,
+                0 to 3,
+                1 to 0,
+                1 to 2,
+                1 to 3,
+                2 to 0,
+                2 to 1,
+                2 to 3,
+                3 to 0,
+                3 to 1,
+                3 to 2
+            ), graph.getPairVer()
+        )
+    }
 }

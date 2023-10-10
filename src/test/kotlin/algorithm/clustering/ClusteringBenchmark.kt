@@ -1,6 +1,7 @@
 package algorithm.clustering
 
 import algorithm.BenchmarkTestBase
+import algorithm.distance
 import algorithm.thesis.Event
 import console.algorithm.clustering.clustering
 import org.junit.jupiter.api.Test
@@ -11,17 +12,17 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 class ClusteringBenchmark : BenchmarkTestBase() {
-    private val MAX_SIZE_CLUSTER = 4
+    private val MAX_SIZE_CLUSTER = 3
 
     @Test
     fun `Number of vertices in the graph`() {
-        val expCount = 10
+        val expCount = 1
         println("Heap max size: " + (Runtime.getRuntime().maxMemory() / 1024 / 1024) + "MB")
         println("Count of Experiments: $expCount")
         val pArr = listOf(1 / 3f, 1 / 2f, 2 / 3f, 9 / 10f)
         val isNewDataGen = true
 
-        val sfg = SetFileGraph(File("test_result/test.txt"))
+        val sfg = SetFileGraph(File("test_result/3-fast.txt"))
         if (isNewDataGen) sfg.clear()
 
         println("Start Warmup")
@@ -29,15 +30,7 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
         pArr.forEach { p ->
             println("$p;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;Mean_tree;Mode_tree;Median_tree;Max_tree;Min_tree;")
-            for (ver in 3..13) {
-                val breakLevel = when (p) {
-                    1 / 2f -> 12
-                    2 / 3f -> 11
-                    9 / 10f -> 10
-                    else -> Int.MAX_VALUE
-                }
-                if (ver > breakLevel)
-                    break
+            for (ver in 3..50) {
                 val gen = Generator(
                     numVer = ver,
                     p = p,
@@ -61,9 +54,23 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
     private fun warmup() {
         SetFileGraph().values.forEach { graph ->
-            if (graph.numVer < 10) {
+            if (graph.numVer < 13) {
+                graph.oriented = false
                 clustering(graph, MAX_SIZE_CLUSTER) { print("") }
             }
         }
+    }
+
+    @Test
+    fun demo() {
+        val gen = Generator(
+            numVer = 17,
+            p = 0.25f,
+        )
+        val input = gen.build()
+        println("Random graph:\n$input")
+        val result = clustering(gen.build(), 3)
+        println("Clustering graph:\n$result")
+        println("Distance:\n${distance(input, result!!)}")
     }
 }

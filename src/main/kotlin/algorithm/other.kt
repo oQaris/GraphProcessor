@@ -53,3 +53,9 @@ private fun dfs(g: Graph, v: Int, component: Int, components: IntArray) {
             dfs(g, u, component, components)
     }
 }
+
+fun distance(g1: Graph, g2: Graph): Int {
+    val e1 = g1.getEdges()
+    val e2 = g2.getEdges()
+    return e1.union(e2).minus(e1.intersect(e2.toSet())).size
+}

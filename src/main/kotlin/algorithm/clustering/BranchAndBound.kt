@@ -3,6 +3,7 @@ package console.algorithm.clustering
 import algorithm.findComponents
 import algorithm.isClusteringMaxSize
 import algorithm.thesis.Event
+import com.github.shiguruikai.combinatoricskt.combinations
 import graphs.Edge
 import graphs.Graph
 import graphs.impl.AdjacencyMatrixGraph
@@ -19,11 +20,6 @@ class Subgraph(
     val rawDetails: MutableList<Pair<Int, Int>>,
     val id: Long = globalID++
 ) {
-
-    fun realEdges(): List<Edge> {
-        return rawDetails.filter { graph.isCom(it) }.map { it.toEdge() }
-    }
-
     override fun toString(): String {
         return "${graph.name}_$id//$score//$rawDetails"
     }
@@ -34,13 +30,21 @@ fun clustering(
     maxSizeCluster: Int,
     driver: (Event) -> Unit = {}
 ): Graph? {
+    require(!base.oriented) // только для неориентированных из-за оптимизаций с порядком пар вершин
     val leaves = PriorityQueue(compareBy<Subgraph> { it.score }.reversed().thenBy { it.id }.reversed())
     var rec = Int.MAX_VALUE
     var answer: Graph? = null
 
-    fun addIfValid(node: Subgraph) {
-        if (isValid(node, maxSizeCluster, rec))
-            leaves.add(node)
+    fun updateTree(newNode: Subgraph, proceedPair: Pair<Int, Int>) {
+        if (newNode.score < rec && isClusteringMaxSize(newNode.graph, maxSizeCluster)) {
+            driver.invoke(Event.REC)
+            rec = newNode.score
+            answer = newNode.graph
+            leaves.removeIf { it.score >= rec }
+        } else if (isValid(newNode, maxSizeCluster, rec)) {
+            resortDetails(newNode, proceedPair)
+            leaves.add(newNode)
+        }
     }
     leaves.add(Subgraph(base.clone(), 0, base.getPairVer().toMutableList()))
     driver.invoke(Event.ON)
@@ -50,49 +54,50 @@ fun clustering(
 
         driver.invoke(Event.EXE)
         val pair = curElem.rawDetails.removeFirst()
-        addIfValid(curElem)
 
+        // Удаление или добавление ребра
         val newG = curElem.graph.clone().apply {
             if (curElem.graph.isCom(pair)) remEdg(pair)
             else addEdg(pair.toEdge())
         }
-        val newScore = curElem.score + 1
+        updateTree(Subgraph(newG, curElem.score + 1, curElem.rawDetails.toMutableList()), pair)
 
-        if (newScore < rec && isClusteringMaxSize(newG, maxSizeCluster)) {
-            driver.invoke(Event.REC)
-            rec = newScore
-            answer = newG
-            leaves.removeIf { it.score >= rec }
-        } else {
-            val newNode = Subgraph(newG, newScore, curElem.rawDetails.toMutableList())
-            resortDetails(newNode, pair)
-            addIfValid(newNode)
-        }
+        // Фиксирование ребра
+        updateTree(onFixingEdgePostprocess(curElem, maxSizeCluster), pair)
     }
     driver.invoke(Event.OFF)
     return answer
 }
 
 /**
- * РАБОТАЕТ ТОЛЬКО ДЛЯ К=3 !!!
+ * Находит все кластеры размера [sizeCluster], образованные фиксированными рёбрами,
+ * и удаляет из исходного графа все рёбра, смежные с составляющими кластер,
+ * затем увеличивает оценку узла на число удалённых рёбер и удаляет рёбра из очереди необработанных.
  */
-fun fixAddPreprocess(node: Subgraph): Subgraph {
+fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
     val components = fixedEdgesComponents(node)
     val extraEdges = components.withIndex()
         .groupBy { it.value }
-        .filter { it.value.size == 3 }
-        .flatMap { (_, curCmp) ->
+        .filter {
+            // value - группа с одинаковыми iv.value (номером компоненты)
+            it.value.size == sizeCluster &&
+                    // поиск кластеров
+                    it.value.combinations(2).all { iv ->
+                        // iv.index - номер вершины
+                        node.graph.isCom(iv[0].index, iv[1].index)
+                    }
+        }.flatMap { (_, curCmp) ->
             val curCmpVer = curCmp.map { it.index }.toSet()
-            // Рёбра, исходящие от тругольника
             curCmpVer.flatMap { v ->
-                (node.graph.com(v) - curCmpVer).map { it to v }
+                // Рёбра, исходящие от кластера
+                (node.graph.com(v) - curCmpVer).map { if (it < v) it to v else v to it }
             }
         }.toSet()
-    return if (extraEdges.isNotEmpty()) {
-        val newG = node.graph.clone().apply { extraEdges.forEach { remEdg(it) } }
-        val newScore = node.score + extraEdges.size
-        Subgraph(newG, newScore, (node.rawDetails - extraEdges).toMutableList())
-    } else node
+    return node.apply {
+        graph.apply { extraEdges.forEach { remEdg(it) } }
+        score + extraEdges.size
+        rawDetails - extraEdges
+    }
 }
 
 /**

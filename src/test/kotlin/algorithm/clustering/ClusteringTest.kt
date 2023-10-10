@@ -1,5 +1,6 @@
 package algorithm.clustering
 
+import algorithm.distance
 import algorithm.findComponents
 import algorithm.isClustering
 import algorithm.thesis.Event
@@ -97,7 +98,23 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(149, cntProvider.countExe) },
+            { assertEquals(2, cntProvider.countExe) },
+            { assertEquals(1, cntProvider.countRec) }
+        )
+    }
+
+    @Test
+    fun clusteringTreeTest() {
+        val cntProvider = createDriver()
+        val input = SetFileGraph()["tree6"]
+        val answer3 = clustering(input, 3, cntProvider.driver)!!
+        val answer4 = clustering(input, 4)!!
+
+        assertEquals(3, distance(input, answer3))
+        assertEquals(answer3, answer4)
+
+        assertAll(
+            { assertEquals(97, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }
@@ -132,7 +149,7 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(12, cntProvider.countExe) },
+            { assertEquals(2, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }
@@ -146,7 +163,7 @@ internal class ClusteringTest {
         assertTrue(answer.getVertices().all { answer.deg(it) != 0 })
 
         assertAll(
-            { assertEquals(13, cntProvider.countExe) },
+            { assertEquals(1, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }

@@ -198,7 +198,7 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     val matrix: Array<Array<Int?>>
         get() = cloneArray(data)
 
-    override fun toString() = standardToString(this)
+    override fun toString() = javaClass.simpleName + standardToString(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

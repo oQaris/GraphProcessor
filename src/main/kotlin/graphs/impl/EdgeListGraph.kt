@@ -136,7 +136,7 @@ class EdgeListGraph(
         return edge.revert()
     }
 
-    override fun toString() = standardToString(this)
+    override fun toString() = javaClass.simpleName + standardToString(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
