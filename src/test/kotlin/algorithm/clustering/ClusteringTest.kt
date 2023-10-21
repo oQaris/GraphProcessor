@@ -157,7 +157,7 @@ internal class ClusteringTest {
     @Test
     fun clusteringBigTest() {
         val cntProvider = createDriver()
-        val input = SetFileGraph()["Undir_17-34"]
+        val input = SetFileGraph()["Undir_17-34"] // Undir_17x34_1..1
         val answer = clustering(input, 3, cntProvider.driver)!!
 
         println(answer)

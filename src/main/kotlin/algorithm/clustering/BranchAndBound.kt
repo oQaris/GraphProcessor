@@ -30,7 +30,8 @@ fun clustering(
     maxSizeCluster: Int,
     driver: (Event) -> Unit = {}
 ): Graph? {
-    require(!base.oriented) // только для неориентированных из-за оптимизаций с порядком пар вершин
+    require(!base.oriented) { "Only non-orientated graphs are supported" }
+    require(maxSizeCluster <= base.numVer) { "maxSizeCluster ($maxSizeCluster) > base.numVer (${base.numVer})" }
     val leaves = PriorityQueue(compareBy<Subgraph> { it.score }.reversed().thenBy { it.id }.reversed())
     var rec = Int.MAX_VALUE
     var answer: Graph? = null

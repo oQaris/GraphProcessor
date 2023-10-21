@@ -22,7 +22,7 @@ class Generator(
     private val isDir: Boolean = false,
     private val withGC: Boolean = (conn ?: 0) > 1,
     private val implementation: (String, Int) -> Graph = ::AdjacencyMatrixGraph,
-    private val except: Collection<Graph> = mutableListOf(),
+    var except: Collection<Graph> = mutableListOf(),
     private val genLim: Int = Short.MAX_VALUE.toInt()
 ) {
     private val numEdge: Int
