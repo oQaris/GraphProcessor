@@ -20,9 +20,9 @@ internal class ClusteringTest {
 
     @Test
     fun comparatorTest() {
-        val g1 = Subgraph(AdjacencyMatrixGraph("1"), 0, mutableListOf())
-        val g2 = Subgraph(AdjacencyMatrixGraph("2"), 1, mutableListOf())
-        val g3 = Subgraph(AdjacencyMatrixGraph("3"), 0, mutableListOf())
+        val g1 = Subgraph(AdjacencyMatrixGraph("1", 1), 0, mutableListOf())
+        val g2 = Subgraph(AdjacencyMatrixGraph("2", 1), 1, mutableListOf())
+        val g3 = Subgraph(AdjacencyMatrixGraph("3", 1), 0, mutableListOf())
 
         val leaves = PriorityQueue(ascLastComparator)
         leaves.add(g1)
@@ -86,9 +86,9 @@ internal class ClusteringTest {
     @Test
     fun preSortEdgesTest() {
         val node = Subgraph(testG, 0, testG.getEdges().map { it.toPair() }.toMutableList())
-        assertEquals(mutableListOf(0 to 2, 1 to 4, 2 to 3, 2 to 5, 3 to 5), node.rawDetails)
-        resortDetails(node, 0 to 5)
-        assertEquals(mutableListOf(0 to 2, 2 to 5, 3 to 5, 1 to 4, 2 to 3), node.rawDetails)
+        assertEquals(mutableListOf(0 to 2, 1 to 4, 2 to 3, 2 to 5, 3 to 5), node.copyRawDetails())
+        node.resortDetails(0 to 5)
+        assertEquals(mutableListOf(0 to 2, 2 to 5, 3 to 5, 1 to 4, 2 to 3), node.copyRawDetails())
     }
 
     @Test
@@ -117,12 +117,12 @@ internal class ClusteringTest {
         assertEquals(0, node.score)
         assertEquals(11, node.graph.numEdg)
 
-        node.rawDetails -= setOf(0 to 2, 1 to 3)
+        node.dropRawDetails(setOf(0 to 2, 1 to 3))
         onFixingEdgePostprocess(node, 4)
         assertEquals(2, node.score)
         assertEquals(9, node.graph.numEdg)
         val exceptPairs = setOf(1 to 5, 3 to 4)
-        assertTrue(node.rawDetails.intersect(exceptPairs).isEmpty())
+        assertTrue(node.copyRawDetails().intersect(exceptPairs).isEmpty())
         assertTrue(exceptPairs.all { !node.graph.isCom(it) })
     }
 
@@ -228,6 +228,21 @@ internal class ClusteringTest {
             { assertEquals(5, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
+    }
+
+    @Test
+    fun minScoreComparatorTest() {
+        val comparator = minScoreComparator()
+        val filler = cl3.getPairVer().toMutableList()
+        val s1 = Subgraph(cl3, 0, filler, 99)
+        val s2 = Subgraph(cl3, 1, filler, 99)
+        val s3 = Subgraph(cl3, 1, filler, 98)
+        val s4 = Subgraph(AdjacencyMatrixGraph("", 1), 1, mutableListOf(), 99)
+
+        assertTrue(comparator.compare(s1, s2) < 0)
+        assertTrue(comparator.compare(s1, s2) < 0)
+        assertTrue(comparator.compare(s2, s3) < 0)
+        assertTrue(comparator.compare(s2, s4) == 0)
     }
 
     private fun createDriver() = object {

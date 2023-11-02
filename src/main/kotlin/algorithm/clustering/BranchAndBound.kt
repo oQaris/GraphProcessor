@@ -17,9 +17,59 @@ val ascLastComparator: Comparator<Subgraph> =
 class Subgraph(
     val graph: Graph,
     var score: Int,
-    val rawDetails: MutableList<Pair<Int, Int>>,
+    private val rawDetails: MutableList<Pair<Int, Int>>,
     val id: Long = globalID++
 ) {
+    //todo защита от изменения
+    var fixCmp: IntArray = fixedEdgesComponents()
+
+    fun isTerminal() = rawDetails.isEmpty()
+
+    fun nextRawDetail(): Pair<Int, Int> {
+        return rawDetails.removeFirst().also { pair ->
+            if (graph.isCom(pair))
+                fixCmp = fixedEdgesComponents()
+        }
+    }
+
+    fun dropRawDetails(otherDetails: Collection<Pair<Int, Int>>) {
+        if (rawDetails.removeAll(otherDetails))
+            fixCmp = fixedEdgesComponents()
+    }
+
+    fun copyRawDetails() = rawDetails.toMutableList()
+
+    fun isFixed(other: Pair<Int, Int>) = !rawDetails.contains(other)
+
+    private fun fixedEdgesComponents(): IntArray {
+        val fixedEdges = graph.getEdges() - rawDetails.map { it.toEdge() }.toSet()
+        val fixedSubgraph = slice(graph, fixedEdges)
+        return findComponents(fixedSubgraph)
+    }
+
+    /**
+     * Сортирует детали в подграфе в порядке:
+     * 1) рёбра смежные с обработанным
+     * 2) нерёбра смежные с обработанным
+     * 3) рёбра не смежные с обработанным
+     * 4) нерёбра несмежные с обработанным
+     */
+    fun resortDetails(pair: Pair<Int, Int>) {
+        val partResult = Array(4) { mutableListOf<Pair<Int, Int>>() }
+        rawDetails.forEach { detail ->
+            val isAdjacent = detail.first == pair.first || detail.second == pair.first
+                    || detail.first == pair.second || detail.second == pair.second
+            val idx = if (graph.isCom(detail)) {
+                if (isAdjacent) 0 else 2
+            } else {
+                if (isAdjacent) 1 else 3
+            }
+            partResult[idx].add(detail)
+        }
+        rawDetails.clear()
+        rawDetails.addAll(partResult.asList().flatten())
+    }
+
     override fun toString(): String {
         return "${graph.name}_$id//$score//$rawDetails"
     }
@@ -32,7 +82,8 @@ fun clustering(
 ): Graph? {
     require(!base.oriented) { "Only non-orientated graphs are supported" }
     require(maxSizeCluster <= base.numVer) { "maxSizeCluster ($maxSizeCluster) > base.numVer (${base.numVer})" }
-    val leaves = PriorityQueue(compareBy<Subgraph> { it.score }.reversed().thenBy { it.id }.reversed())
+    globalID = 0L
+    val leaves = PriorityQueue(minScoreComparator())
     var rec = Int.MAX_VALUE
     var answer: Graph? = null
 
@@ -43,7 +94,7 @@ fun clustering(
             answer = newNode.graph
             leaves.removeIf { it.score >= rec }
         } else if (isValid(newNode, maxSizeCluster, rec)) {
-            resortDetails(newNode, proceedPair)
+            newNode.resortDetails(proceedPair)
             leaves.add(newNode)
         }
     }
@@ -54,20 +105,26 @@ fun clustering(
         val curElem = leaves.poll()
 
         driver.invoke(Event.EXE)
-        val pair = curElem.rawDetails.removeFirst()
+        val pair = curElem.nextRawDetail()
 
         // Удаление или добавление ребра
         val newG = curElem.graph.clone().apply {
             if (curElem.graph.isCom(pair)) remEdg(pair)
             else addEdg(pair.toEdge())
         }
-        updateTree(Subgraph(newG, curElem.score + 1, curElem.rawDetails.toMutableList()), pair)
+        val changed = Subgraph(newG, curElem.score + 1, curElem.copyRawDetails())
 
-        // Фиксирование ребра
+        // Фиксирование пары вершин
         updateTree(onFixingEdgePostprocess(curElem, maxSizeCluster), pair)
+
+        updateTree(changed, pair)
     }
     driver.invoke(Event.OFF)
     return answer
+}
+
+fun minScoreComparator(): Comparator<Subgraph> {
+    return compareBy<Subgraph> { it.score }.reversed().thenBy { it.id }.reversed()
 }
 
 /**
@@ -76,8 +133,7 @@ fun clustering(
  * затем увеличивает оценку узла на число удалённых рёбер и удаляет рёбра из очереди необработанных.
  */
 fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
-    val components = fixedEdgesComponents(node)
-    val extraEdges = components.withIndex()
+    val extraEdges = node.fixCmp.withIndex()
         .groupBy { it.value }
         .filter {
             // value - группа с одинаковыми iv.value (номером компоненты)
@@ -85,7 +141,7 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
                     // проверка кластерности фиксированного подмножества
                     it.value.combinations(2).all { iv ->
                         // iv.index - номер вершины
-                        iv[0].index to iv[1].index !in node.rawDetails
+                        node.isFixed(iv[0].index to iv[1].index)
                     }
         }.flatMap { (_, curCmp) ->
             val curCmpVer = curCmp.map { it.index }.toSet()
@@ -97,31 +153,8 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
     return node.apply {
         graph.apply { extraEdges.forEach { remEdg(it) } }
         score += extraEdges.size
-        rawDetails -= extraEdges
+        dropRawDetails(extraEdges)
     }
-}
-
-/**
- * Сортирует детали в подграфе в порядке:
- * 1) рёбра смежные с обработанным
- * 2) нерёбра смежные с обработанным
- * 3) рёбра не смежные с обработанным
- * 4) нерёбра несмежные с обработанным
- */
-fun resortDetails(node: Subgraph, pair: Pair<Int, Int>) {
-    val partResult = Array(4) { mutableListOf<Pair<Int, Int>>() }
-    node.rawDetails.forEach { detail ->
-        val isAdjacent = detail.first == pair.first || detail.second == pair.first
-                || detail.first == pair.second || detail.second == pair.second
-        val idx = if (node.graph.isCom(detail)) {
-            if (isAdjacent) 0 else 2
-        } else {
-            if (isAdjacent) 1 else 3
-        }
-        partResult[idx].add(detail)
-    }
-    node.rawDetails.clear()
-    node.rawDetails.addAll(partResult.asList().flatten())
 }
 
 /**
@@ -132,17 +165,10 @@ fun resortDetails(node: Subgraph, pair: Pair<Int, Int>) {
  * 4) выполняется критерий кластерности.
  */
 fun isValid(node: Subgraph, maxSizeCluster: Int, record: Int): Boolean {
-    if (node.score >= record || node.rawDetails.isEmpty())
+    if (node.score >= record || node.isTerminal())
         return false
-    val components = fixedEdgesComponents(node)
-    return maxSizeComponent(components) <= maxSizeCluster
-            && correctCriterionOfClustering(components, node.graph)
-}
-
-fun fixedEdgesComponents(node: Subgraph): IntArray {
-    val fixedEdges = node.graph.getEdges() - node.rawDetails.map { it.toEdge() }.toSet()
-    val fixedSubgraph = slice(node.graph, fixedEdges)
-    return findComponents(fixedSubgraph)
+    return maxSizeComponent(node.fixCmp) <= maxSizeCluster
+            && correctCriterionOfClustering(node.fixCmp, node.graph)
 }
 
 fun maxSizeComponent(components: IntArray) =
