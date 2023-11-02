@@ -128,13 +128,15 @@ fun resortDetails(node: Subgraph, pair: Pair<Int, Int>) {
  * проверяет, что:
  * 1) узел содержит необработанные рёбра;
  * 2) расстояние до исходного графа меньше текущего рекорда;
- * 3) размер максимальной компоненты связности, образованной фиксированными рёбрами не больше maxSizeCluster.
+ * 3) размер максимальной компоненты связности, образованной фиксированными рёбрами не больше maxSizeCluster;
+ * 4) выполняется критерий кластерности.
  */
 fun isValid(node: Subgraph, maxSizeCluster: Int, record: Int): Boolean {
     if (node.score >= record || node.rawDetails.isEmpty())
         return false
     val components = fixedEdgesComponents(node)
     return maxSizeComponent(components) <= maxSizeCluster
+            && correctCriterionOfClustering(components, node.graph)
 }
 
 fun fixedEdgesComponents(node: Subgraph): IntArray {
@@ -148,17 +150,20 @@ fun maxSizeComponent(components: IntArray) =
 
 /**
  * Критерий кластерности графа.
- * Если компонента связности, порождённная фиксированными рёбрами, состоит из тёх вершин,
- * то они должны быть все смежны в исходном графе.
+ * Найдём компоненты связности, порождённые множеством фиксированных рёбер, содержащие ровно 3 вершины
+ * (обозначим их 1, 2 и 3), соединённых двумя рёбрами, б.о.о. (1,2) и (2,3).
+ * Убедимся, что между крайними вершинами (1 и 3) существует ребро в [origGraph]
  */
 fun correctCriterionOfClustering(components: IntArray, origGraph: Graph): Boolean {
     return components.withIndex()
         .groupBy { it.value }
-        .filter { it.value.size == 3 }.all { (_, curCmp) ->
+        .filter { it.value.size == 3 }
+        .all { (_, curCmp) ->
             val curCmpVer = curCmp.map { it.index }
-            // Проверяем, что 3 вершины образуют треугольник
-            curCmpVer.all { v ->
-                origGraph.com(v).containsAll(curCmpVer.toSet() - v)
+            // Проверяем, что все 3 вершины смежны друг с другом в исходном графе
+            // (если 2, то критерий не выполняется, а 1 быть не может, поскольку компонента связности размера 3)
+            curCmpVer.combinations(2).all { vers ->
+                origGraph.isCom(vers[0], vers[1])
             }
         }
 }

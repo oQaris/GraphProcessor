@@ -16,15 +16,15 @@ class ClusteringBenchmark : BenchmarkTestBase() {
     }
 
     @Test
-    fun `Number of vertices in the graph`() {
+    fun `Number of vertices`() {
         val maxSizeCluster = 3
-        val expCount = 1
+        val expCount = 50
 
         warmup()
         val pToVer = mapOf(
             1 / 5f to 17,
-            1 / 2f to 15,
-            4 / 5f to 13
+            1 / 2f to 14,
+            4 / 5f to 12
         )
         pToVer.forEach { (p, maxVer) ->
             val bench = SfgBenchmark("test_result/testP-$p.txt", p.toString(), true)
@@ -41,10 +41,31 @@ class ClusteringBenchmark : BenchmarkTestBase() {
     }
 
     @Test
+    fun `Number of edges`() {
+        val maxSizeCluster = 3
+        val numVer = 15
+        val expCount = 1
+        val maxEdge = Generator.maxNumEdge(numVer)
+        println(maxEdge)
+
+        warmup()
+        val bench = SfgBenchmark("test_result/testE.txt", numVer.toString(), true)
+        (0..maxEdge).forEach { numEdg ->
+            val gen = Generator(
+                numVer = numVer,
+                numEdg = numEdg
+            )
+            bench.printMeasure(expCount, numEdg.toString(), gen) { graph, driver ->
+                clustering(graph, maxSizeCluster, driver)
+            }
+        }
+    }
+
+    @Test
     fun `Max size cluster in solution`() {
         val numVer = 10
         val p = 0.5f
-        val expCount = 1
+        val expCount = 50
 
         warmup()
         val bench = SfgBenchmark("test_result/testS.txt", p.toString(), true)

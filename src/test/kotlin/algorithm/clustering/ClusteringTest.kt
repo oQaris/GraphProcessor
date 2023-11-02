@@ -66,7 +66,10 @@ internal class ClusteringTest {
         val noClusteringApriori = testG.clone().apply {
             addEdg(1 edg 6)
         }
-        assertFalse(correctCriterionOfClustering(findComponents(noClusteringApriori), noClusteringApriori))
+        val cmp2Edge = findComponents(noClusteringApriori)
+        assertFalse(correctCriterionOfClustering(cmp2Edge, noClusteringApriori))
+        noClusteringApriori.addEdg(4 edg 6)
+        assertTrue(correctCriterionOfClustering(cmp2Edge, noClusteringApriori))
     }
 
     @Test
@@ -133,7 +136,7 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(87, cntProvider.countExe) },
+            { assertEquals(79, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }
@@ -149,13 +152,14 @@ internal class ClusteringTest {
         assertEquals(answer3, answer4)
 
         assertAll(
-            { assertEquals(96, cntProvider.countExe) },
+            { assertEquals(14, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }
 
     @Test
     fun clusteringBigTest() {
+        // Выполняется 4 секунды
         val cntProvider = createDriver()
         val input = SetFileGraph()["Undir_17-34"] // Undir_17x34_1..1
         val answer = clustering(input, 3, cntProvider.driver)!!
@@ -194,7 +198,7 @@ internal class ClusteringTest {
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(7, cntProvider.countExe) },
+            { assertEquals(6, cntProvider.countExe) },
             { assertEquals(1, cntProvider.countRec) }
         )
     }

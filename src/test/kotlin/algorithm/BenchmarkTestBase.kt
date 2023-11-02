@@ -32,7 +32,12 @@ open class BenchmarkTestBase {
             timedFunc: (Graph, Driver) -> Unit
         ) {
             if (isFirstCall) {
-                println("$expId;ExpCount;Mean;Mode;Median;Max;Min;Mean_Rec;Mode_Rec;Median_Rec;Max_Rec;Min_Rec;Mean_tree;Mode_tree;Median_tree;Max_tree;Min_tree;")
+                println(
+                    "$expId;ExpCount;Mean;Mode;Median;Max;Min;" +
+                            "Mean_RecT;Mode_RecT;Median_RecT;Max_RecT;Min_RecT;" +
+                            "Mean_RecC;Mode_RecC;Median_RecC;Max_RecC;Min_RecC;" +
+                            "Mean_tree;Mode_tree;Median_tree;Max_tree;Min_tree;"
+                )
                 isFirstCall = false
             }
             generator.except = sfg.values
@@ -42,12 +47,14 @@ open class BenchmarkTestBase {
 
             val startedOn = times[Event.ON]!!.map { it.single() }
             val allTime = times[Event.OFF]!!.zip(startedOn).map { it.first.single() - it.second }
-            val record = times[Event.REC]!!.zip(startedOn).map { it.first.last() - it.second }
+            val recordTimes = times[Event.REC]!!.zip(startedOn).map { it.first.last() - it.second }
+            val recordCounts = times[Event.REC]!!.map { it.size.toLong() }
             val deeps = times[Event.EXE]!!.map { it.count().toLong() }
             println(
                 "$rowId;$expCount;" +
                         "${allTime.mean()};${allTime.mode()};${allTime.median()};${allTime.max()};${allTime.min()};" +
-                        "${record.mean()};${record.mode()};${record.median()};${record.max()};${record.min()};" +
+                        "${recordTimes.mean()};${recordTimes.mode()};${recordTimes.median()};${recordTimes.max()};${recordTimes.min()};" +
+                        "${recordCounts.mean()};${recordCounts.mode()};${recordCounts.median()};${recordCounts.max()};${recordCounts.min()};" +
                         "${deeps.mean()};${deeps.mode()};${deeps.median()};${deeps.max()};${deeps.min()};"
             )
         }

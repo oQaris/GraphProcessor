@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
 
 class Generator(
     private val numVer: Int,
-    _numEdge: Int? = null,
+    numEdg: Int? = null,
     p: Float? = null,
     var name: String? = null,
     private val weights: IntRange = 1..1,
@@ -29,9 +29,9 @@ class Generator(
     private val logger = KotlinLogging.logger {}
 
     init {
-        requireG((_numEdge != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
+        requireG((numEdg != null) xor (p != null)) { "Выберите что то одно: либо точное число рёбер, либо вероятность появления" }
         val maxEdges = maxNumEdge(numVer)
-        numEdge = _numEdge ?: (maxEdges * p!!).roundToInt()
+        numEdge = numEdg ?: (maxEdges * p!!).roundToInt()
         requireG(numEdge in 0..maxEdges) { "Не может быть $numEdge рёбер в графе с $numVer вершинами (max $maxEdges)" }
         requireG(conn == null || conn > 0) { "Связность графа не может быть $conn" }
         if (conn != null) {
