@@ -25,14 +25,14 @@ class Subgraph(
 
     fun isTerminal() = rawDetails.isEmpty()
 
-    fun nextRawDetail(): Pair<Int, Int> {
+    fun fixNextDetail(): Pair<Int, Int> {
         return rawDetails.removeFirst().also { pair ->
             if (graph.isCom(pair))
                 fixCmp = fixedEdgesComponents()
         }
     }
 
-    fun dropRawDetails(otherDetails: Collection<Pair<Int, Int>>) {
+    fun fixDetails(otherDetails: Collection<Pair<Int, Int>>) {
         if (rawDetails.removeAll(otherDetails))
             fixCmp = fixedEdgesComponents()
     }
@@ -88,6 +88,8 @@ fun clustering(
     var answer: Graph? = null
 
     fun updateTree(newNode: Subgraph, proceedPair: Pair<Int, Int>) {
+        //todo Если последнее увеличение оценки происходило не более чем на 1, то на этом этапе алгоритм можно завершить,
+        // поскольку все последующие итерации приведут лишь к увеличению оценок подмножеств минимум на 1.
         if (newNode.score < rec && isClusteringMaxSize(newNode.graph, maxSizeCluster)) {
             driver.invoke(Event.REC)
             rec = newNode.score
@@ -105,19 +107,26 @@ fun clustering(
         val curElem = leaves.poll()
 
         driver.invoke(Event.EXE)
-        val pair = curElem.nextRawDetail()
+        val pair = curElem.fixNextDetail()
 
         // Удаление или добавление ребра
         val newG = curElem.graph.clone().apply {
-            if (curElem.graph.isCom(pair)) remEdg(pair)
+            if (isCom(pair)) remEdg(pair)
             else addEdg(pair.toEdge())
         }
         val changed = Subgraph(newG, curElem.score + 1, curElem.copyRawDetails())
 
-        // Фиксирование пары вершин
-        updateTree(onFixingEdgePostprocess(curElem, maxSizeCluster), pair)
-
-        updateTree(changed, pair)
+        if (!curElem.graph.isCom(pair)) {
+            // Если было добавление, то проводим те же операции, что и при фиксировании ребра
+            updateTree(onFixingEdgePostprocess(changed, maxSizeCluster), pair)
+            // Фиксирование пары вершин
+            updateTree(curElem, pair)
+        } else {
+            // Удаление ребра
+            updateTree(changed, pair)
+            // Если фиксируется ребро
+            updateTree(onFixingEdgePostprocess(curElem, maxSizeCluster), pair)
+        }
     }
     driver.invoke(Event.OFF)
     return answer
@@ -141,7 +150,8 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
                     // проверка кластерности фиксированного подмножества
                     it.value.combinations(2).all { iv ->
                         // iv.index - номер вершины
-                        node.isFixed(iv[0].index to iv[1].index)
+                        val edge = iv[0].index to iv[1].index
+                        node.isFixed(edge) && node.graph.isCom(edge)
                     }
         }.flatMap { (_, curCmp) ->
             val curCmpVer = curCmp.map { it.index }.toSet()
@@ -153,7 +163,7 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
     return node.apply {
         graph.apply { extraEdges.forEach { remEdg(it) } }
         score += extraEdges.size
-        dropRawDetails(extraEdges)
+        fixDetails(extraEdges)
     }
 }
 
@@ -168,7 +178,7 @@ fun isValid(node: Subgraph, maxSizeCluster: Int, record: Int): Boolean {
     if (node.score >= record || node.isTerminal())
         return false
     return maxSizeComponent(node.fixCmp) <= maxSizeCluster
-            && correctCriterionOfClustering(node.fixCmp, node.graph)
+            //&& correctCriterionOfClustering(node.fixCmp, node.graph)
 }
 
 fun maxSizeComponent(components: IntArray) =
@@ -181,6 +191,7 @@ fun maxSizeComponent(components: IntArray) =
  * Убедимся, что между крайними вершинами (1 и 3) существует ребро в [origGraph]
  */
 fun correctCriterionOfClustering(components: IntArray, origGraph: Graph): Boolean {
+    //todo фиксировать сразу последнюю
     return components.withIndex()
         .groupBy { it.value }
         .filter { it.value.size == 3 }

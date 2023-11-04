@@ -4,9 +4,13 @@ import algorithm.BenchmarkTestBase
 import algorithm.distance
 import console.algorithm.clustering.clustering
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
 import storage.SetFileGraph
+import java.io.File
+import kotlin.random.Random
+import kotlin.test.assertEquals
 
 class ClusteringBenchmark : BenchmarkTestBase() {
 
@@ -82,6 +86,47 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
             bench.printMeasure(curExpCount.toInt(), s.toString(), gen) { graph, driver ->
                 clustering(graph, s, driver)
+            }
+        }
+    }
+
+    @Test
+    @Disabled("Перезапишет эталонные данные")
+    fun `Random generate set distance`() {
+        val sfg = SetFileGraph(File("rnd_test.txt"))
+        sfg.clear()
+        var numExp = 0
+        for (ver in 4..11) {
+            repeat(7) {
+                val p = Random.nextFloat()
+                val gen = Generator(numVer = ver, p = p)
+                val g = gen.build()
+
+                var name = numExp.toString() + "_"
+                for (s in 3..4) {
+                    val dist = distance(g, clustering(g, s)!!)
+                    name += dist
+                    name += "-"
+                }
+                name = name.dropLast(1)
+                sfg.add(g, name)
+                numExp++
+                println("$numExp - $name")
+            }
+        }
+        sfg.push()
+    }
+
+    @Test
+    fun `Random test set distance`() {
+        val sfg = SetFileGraph(File("rnd_test.txt"))
+        sfg.forEach { name, g ->
+            println(name)
+            val dists = name.split("_")[1].split("-").map { it.toInt() }
+            for ((i, s) in (3..4).withIndex()) {
+                println(s)
+                val dist = distance(g, clustering(g, s)!!)
+                assertEquals(dists[i], dist, "$name was dist=$dist for s=$s")
             }
         }
     }

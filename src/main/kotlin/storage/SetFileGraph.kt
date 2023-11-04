@@ -32,15 +32,19 @@ class SetFileGraph(
     fun push(append: Boolean = false) {
         FileOutputStream(file, append)
             .bufferedWriter().use { bw ->
-                for (g in map.values) {
-                    bw.write(standardToString(g))
+                map.forEach { (name, g) ->
+                    bw.write(extendedToString(g, name))
                     bw.flush()
                 }
             }
     }
 
     fun add(graph: Graph): Boolean {
-        return map.put(graph.name, graph) == null
+        return add(graph, graph.name)
+    }
+
+    fun add(graph: Graph, name: String): Boolean {
+        return map.put(name, graph) == null
     }
 
     override operator fun get(key: String) =

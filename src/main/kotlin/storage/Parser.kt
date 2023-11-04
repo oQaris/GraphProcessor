@@ -21,9 +21,11 @@ fun parse(
             }.toList()
         }).also { id++ }
 
-fun standardToString(graph: Graph) =
+fun standardToString(graph: Graph) = extendedToString(graph, graph.name)
+
+fun extendedToString(graph: Graph, name: String) =
     StringBuilder().apply {
-        append(":").append(graph.name).append(":")
+        append(":").append(name).append(":")
         append(System.lineSeparator())
         for (i in 0 until graph.numVer) {
             for (j in 0 until graph.numVer)

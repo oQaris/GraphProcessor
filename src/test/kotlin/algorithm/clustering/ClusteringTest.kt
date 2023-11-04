@@ -111,19 +111,37 @@ internal class ClusteringTest {
         val node = Subgraph(
             testG,
             0,
+            // фиксируются песочные часы из 1-2-3-4 и треугольник 5-6-7
             (testG.getPairVer() - setOf(0 to 1, 0 to 3, 1 to 2, 2 to 3, 4 to 5, 5 to 6, 4 to 6)).toMutableList()
         )
         onFixingEdgePostprocess(node, 4)
         assertEquals(0, node.score)
         assertEquals(11, node.graph.numEdg)
 
-        node.dropRawDetails(setOf(0 to 2, 1 to 3))
+        node.fixDetails(setOf(0 to 2, 1 to 3))
         onFixingEdgePostprocess(node, 4)
         assertEquals(2, node.score)
         assertEquals(9, node.graph.numEdg)
         val exceptPairs = setOf(1 to 5, 3 to 4)
         assertTrue(node.copyRawDetails().intersect(exceptPairs).isEmpty())
         assertTrue(exceptPairs.all { !node.graph.isCom(it) })
+    }
+
+    @Test
+    fun onFixingEdgePostprocessFailTest() {
+        val testG = AdjacencyMatrixGraph("cmp34", 7).apply {
+            addEdg(0 edg 1)
+            addEdg(1 edg 2)
+            addEdg(2 edg 3)
+            addEdg(3 edg 0)
+        }
+        val node = Subgraph(
+            testG,
+            0,
+            (testG.getPairVer() - setOf(0 to 1, 1 to 2, 0 to 2)).toMutableList()
+        )
+        onFixingEdgePostprocess(node, 3)
+        assertEquals(0, node.score)
     }
 
     @Test
@@ -163,9 +181,15 @@ internal class ClusteringTest {
         val cntProvider = createDriver()
         val input = SetFileGraph()["Undir_17-34"] // Undir_17x34_1..1
         val answer = clustering(input, 3, cntProvider.driver)!!
+        assertEquals(22, distance(input, answer), answer.toString())
+    }
 
-        println(answer)
-        assertEquals(22, distance(input, answer))
+    @Test
+    fun clusteringClippingTest() {
+        val cntProvider = createDriver()
+        val input = SetFileGraph()["34_13-10"]
+        val answer = clustering(input, 4, cntProvider.driver)!!
+        assertEquals(10, distance(input, answer), answer.toString())
     }
 
     private val cl3 = AdjacencyMatrixGraph("cl3", 4).apply {
