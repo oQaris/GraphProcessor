@@ -45,9 +45,11 @@ open class BenchmarkTestBase {
 
             val times = timedEvents(expCount, graphGetter, timeUnit, timedFunc)
 
+            // Обязательные события
             val startedOn = times[Event.ON]!!.map { it.single() }
             val allTime = times[Event.OFF]!!.zip(startedOn).map { it.first.single() - it.second }
-            val recordTimes = times[Event.REC]!!.zip(startedOn).map { it.first.last() - it.second }
+            // Необязательные события
+            val recordTimes = times[Event.REC]!!.zip(startedOn).map { (it.first.lastOrNull() ?: it.second) - it.second }
             val recordCounts = times[Event.REC]!!.map { it.size.toLong() }
             val deeps = times[Event.EXE]!!.map { it.count().toLong() }
             println(

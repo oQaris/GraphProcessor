@@ -25,6 +25,7 @@ dependencies {
     // Algorithm
     implementation("com.udojava:EvalEx:2.7")
     implementation("com.github.shiguruikai:combinatoricskt:1.6.0")
+    implementation("com.github.mwiede:jsch:0.2.16")
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
     implementation("org.slf4j:slf4j-api:2.0.3")

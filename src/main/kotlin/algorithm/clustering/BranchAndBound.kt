@@ -79,7 +79,7 @@ fun clustering(
     base: Graph,
     maxSizeCluster: Int,
     driver: (Event) -> Unit = {}
-): Graph? {
+): Graph {
     require(!base.oriented) { "Only non-orientated graphs are supported" }
     require(maxSizeCluster <= base.numVer) { "maxSizeCluster ($maxSizeCluster) > base.numVer (${base.numVer})" }
     globalID = 0L
@@ -129,7 +129,7 @@ fun clustering(
         }
     }
     driver.invoke(Event.OFF)
-    return answer
+    return answer!!
 }
 
 fun minScoreComparator(): Comparator<Subgraph> {
@@ -178,7 +178,7 @@ fun isValid(node: Subgraph, maxSizeCluster: Int, record: Int): Boolean {
     if (node.score >= record || node.isTerminal())
         return false
     return maxSizeComponent(node.fixCmp) <= maxSizeCluster
-            //&& correctCriterionOfClustering(node.fixCmp, node.graph)
+            && correctCriterionOfClustering(node.fixCmp, node.graph)
 }
 
 fun maxSizeComponent(components: IntArray) =

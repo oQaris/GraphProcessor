@@ -12,7 +12,7 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 class Generator(
-    private val numVer: Int,
+    val numVer: Int,
     numEdg: Int? = null,
     p: Float? = null,
     var name: String? = null,
@@ -25,7 +25,7 @@ class Generator(
     var except: Collection<Graph> = mutableListOf(),
     private val genLim: Int = Short.MAX_VALUE.toInt()
 ) {
-    private val numEdge: Int
+    val numEdge: Int
     private val logger = KotlinLogging.logger {}
 
     init {
@@ -80,6 +80,10 @@ class Generator(
             .run { plus(first()) }
             .zipWithNext()
             .forEach { addEdg(it.toEdge(weightRange.random())) }
+    }
+
+    override fun toString(): String {
+        return "Gen(Ver=$numVer,Edg=$numEdge)"
     }
 
     companion object {

@@ -2,7 +2,9 @@ package algorithm.clustering
 
 import algorithm.BenchmarkTestBase
 import algorithm.distance
+import console.algorithm.clustering.GamsModel
 import console.algorithm.clustering.clustering
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -22,26 +24,32 @@ class ClusteringBenchmark : BenchmarkTestBase() {
     @Test
     fun `Number of vertices`() {
         val maxSizeCluster = 3
-        val expCount = 50
+        val expCount = 10
+
+        val model = GamsModel()
+        model.connect()
 
         warmup()
         val pToVer = mapOf(
-            1 / 5f to 17,
-            1 / 2f to 14,
+            1 / 5f to 21,
+            1 / 2f to 15,
             4 / 5f to 12
         )
         pToVer.forEach { (p, maxVer) ->
             val bench = SfgBenchmark("test_result/testP-$p.txt", p.toString(), true)
-            for (ver in 3..maxVer) {
+            for (ver in maxSizeCluster..maxVer) {
                 val gen = Generator(
                     numVer = ver,
                     p = p
                 )
                 bench.printMeasure(expCount, ver.toString(), gen) { graph, driver ->
-                    clustering(graph, maxSizeCluster, driver)
+                    val custom = clustering(graph, maxSizeCluster, driver)
+                    val gams = model.clustering(graph, maxSizeCluster)
+                    Assertions.assertFalse(distance(graph, custom) > distance(graph, gams), graph.toString())
                 }
             }
         }
+        model.disconnect()
     }
 
     @Test
@@ -67,22 +75,20 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
     @Test
     fun `Max size cluster in solution`() {
-        val numVer = 10
-        val p = 0.5f
-        val expCount = 50
-
+        val expCount = 1
+        val gen = Generator(
+            numVer = 14,
+            p = 0.5f
+        )
         warmup()
-        val bench = SfgBenchmark("test_result/testS.txt", p.toString(), true)
-        for (s in 1..numVer - 3) {
-            val gen = Generator(
-                numVer = numVer,
-                p = p
-            )
-            val curExpCount = when (s) {
+
+        val bench = SfgBenchmark("test_result/testS.txt", gen.toString(), true)
+        for (s in 1..gen.numVer) {
+            val curExpCount = /*when (s) {
                 7 -> 0.75
                 8 -> 0.5
                 else -> 1.0
-            } * expCount
+            } * */expCount
 
             bench.printMeasure(curExpCount.toInt(), s.toString(), gen) { graph, driver ->
                 clustering(graph, s, driver)
@@ -135,7 +141,10 @@ class ClusteringBenchmark : BenchmarkTestBase() {
         SetFileGraph().values.forEach { graph ->
             if (graph.numVer < 13) {
                 graph.oriented = false
-                clustering(graph, 3) { print("") }
+                try {
+                    clustering(graph, 3) { print("") }
+                } catch (ignored: Exception) {
+                }
             }
         }
     }
