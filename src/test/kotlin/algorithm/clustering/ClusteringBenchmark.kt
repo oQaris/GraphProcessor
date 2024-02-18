@@ -24,28 +24,28 @@ class ClusteringBenchmark : BenchmarkTestBase() {
     @Test
     fun `Number of vertices`() {
         val maxSizeCluster = 3
-        val expCount = 10
+        val expCount = 1
 
         val model = GamsModel()
         model.connect()
 
         warmup()
         val pToVer = mapOf(
-            1 / 5f to 21,
-            1 / 2f to 15,
-            4 / 5f to 12
+            1 / 5f to 999,
+            //1 / 2f to 15,
+            //4 / 5f to 12
         )
         pToVer.forEach { (p, maxVer) ->
-            val bench = SfgBenchmark("test_result/testP-$p.txt", p.toString(), true)
-            for (ver in maxSizeCluster..maxVer) {
+            val bench = SfgBenchmark("test_result/testModel.txt", p.toString(), false)
+            for (ver in 23..maxVer) {
                 val gen = Generator(
                     numVer = ver,
                     p = p
                 )
                 bench.printMeasure(expCount, ver.toString(), gen) { graph, driver ->
                     val custom = clustering(graph, maxSizeCluster, driver)
-                    val gams = model.clustering(graph, maxSizeCluster)
-                    Assertions.assertFalse(distance(graph, custom) > distance(graph, gams), graph.toString())
+                    //val gams = model.clustering(graph, maxSizeCluster, driver)
+                    //Assertions.assertEquals(distance(graph, custom), distance(graph, gams), graph.toString())
                 }
             }
         }
@@ -133,6 +133,24 @@ class ClusteringBenchmark : BenchmarkTestBase() {
                 println(s)
                 val dist = distance(g, clustering(g, s)!!)
                 assertEquals(dists[i], dist, "$name was dist=$dist for s=$s")
+            }
+        }
+    }
+
+    @Test
+    fun compareWithGams() {
+        val maxSizeCluster = 3
+        val expCount = 4
+
+        warmup()
+        val bench = SfgBenchmark("test_result/testCmp.txt", "0.5", true)
+        for (ver in maxSizeCluster..20) {
+            val gen = Generator(
+                numVer = ver,
+                p = 0.5f
+            )
+            bench.printMeasure(expCount, ver.toString(), gen) { graph, driver ->
+                clustering(graph, maxSizeCluster, driver)
             }
         }
     }

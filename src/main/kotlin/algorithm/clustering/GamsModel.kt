@@ -17,6 +17,8 @@ class GamsModel {
         %s ;
 
         Binary Variable x(i,j) "result";
+        Binary Variable z1(i,j) "auxiliary variable x-y";
+        Binary Variable z2(i,j) "auxiliary variable y-x";
         Variable distance "objective";
 
         Equations
@@ -24,20 +26,26 @@ class GamsModel {
            sim(i,j) "symmetric matrix"
            diag(i,i) "diagonal matrix"
            size(i) "cluster size"
+           con1(i,j) "x-y"
+           con2(i,j) "y-x"
            obj "total distance";
 
         allow(i,j,k)${'$'}(ord(i)<>ord(j) and ord(j)<>ord(k) and ord(k)<>ord(i)).. x(i,k) + x(i,j) =l= x(j,k) + 1;
 
         sim(i,j)${'$'}(ord(i)<ord(j)).. x(i,j) =e= x(j,i);
-
         diag(i,i).. x(i,i) =e= 0;
 
         size(i).. sum(j, x(i,j)) =l= %d;
+        
+        con1(i,j).. z1(i,j) =g= x(i,j) - y(i,j);
+        con2(i,j).. z2(i,j) =g= y(i,j) - x(i,j);
 
-        obj.. distance =e= sum((i,j), abs(x(i,j) - y(i,j)));
+        * z1(i,j) + z2(i,j) = abs(x(i,j) - y(i,j))
+        obj.. distance =e= sum((i,j), z1(i,j) + z2(i,j));
 
+        Option LP = Gurobi;
         Model clustering / all /;
-        Solve clustering minimizing distance using MINLP;
+        Solve clustering minimizing distance using MIP;
 
         Option x:0;
         Display "Result graph", x.l, "Objective value", clustering.objval;
@@ -124,8 +132,8 @@ class GamsModel {
         val prefix = "----\\s+\\d+\\s+VARIABLE\\s+x.L\\s+result".toRegex()
         val suffix = "----\\s+\\d+\\s+Objective value".toRegex()
 
-        val start = prefix.findAll(out).lastOrNull()?.range?.last ?: throw IllegalStateException("no solve!")
-        val end = suffix.findAll(out).lastOrNull()?.range?.first ?: throw IllegalStateException("no solve!")
+        val start = prefix.findAll(out).lastOrNull()?.range?.last ?: throw IllegalStateException(out)
+        val end = suffix.findAll(out).lastOrNull()?.range?.first ?: throw IllegalStateException(out)
 
         val rows = out.substring(start + 1, end)
             .split("\n")
@@ -155,13 +163,19 @@ class GamsModel {
 }
 
 fun main() {
+    val s = 3
     val model = GamsModel()
-    val graph = SetFileGraph()["12_6"]
+    val graph = SetFileGraph()["6_2"]
     println(graph)
+
+    println("GamsModel")
     try {
         model.connect()
-        println(model.clustering(graph, 3))
+        println(model.clustering(graph, s))
     } finally {
         model.disconnect()
     }
+
+    println("BranchAndBound")
+    println(clustering(graph, s))
 }

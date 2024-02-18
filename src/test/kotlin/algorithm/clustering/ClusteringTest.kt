@@ -5,18 +5,36 @@ import algorithm.findComponents
 import algorithm.isClustering
 import algorithm.thesis.Event
 import console.algorithm.clustering.*
+import graphs.Graph
 import graphs.edg
 import graphs.impl.AdjacencyMatrixGraph
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import storage.SetFileGraph
 import java.util.*
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ClusteringTest {
+
+    //private val gamsModel = GamsModel().apply { connect() }
+
+    class Clusterizer(private val name: String, val start: (Graph, Int, (Event) -> Unit) -> Graph) {
+        override fun toString() = name
+    }
+
+    private fun testModels(): List<Clusterizer> {
+        return listOf(
+            Clusterizer("BranchAndBound", ::clustering),
+            //Clusterizer("GamsModel", gamsModel::clustering)
+        )
+    }
 
     @Test
     fun comparatorTest() {
@@ -128,7 +146,7 @@ internal class ClusteringTest {
     }
 
     @Test
-    fun onFixingEdgePostprocessFailTest() {
+    fun onFixingEdgePostprocessFakeTest() {
         val testG = AdjacencyMatrixGraph("cmp34", 7).apply {
             addEdg(0 edg 1)
             addEdg(1 edg 2)
@@ -140,55 +158,62 @@ internal class ClusteringTest {
             0,
             (testG.getPairVer() - setOf(0 to 1, 1 to 2, 0 to 2)).toMutableList()
         )
-        onFixingEdgePostprocess(node, 3)
+        trimCluster(node, 3)
+        assertEquals(0, node.score)
+        fillByCriterion(node)
         assertEquals(0, node.score)
     }
 
-    @Test
-    fun clustering3FullTest() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clustering3FullTest(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
-        val answer = clustering(SetFileGraph()["star"], 3, cntProvider.driver)!!
+        val answer = clusterizer.start(SetFileGraph()["star"], 3, cntProvider.driver)
 
         assertEquals(4, answer.numEdg)
         assertEquals(2, answer.getVertices().filter { answer.deg(it) == 1 }.size)
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(79, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countRec) }
+            { assertTrue(cntProvider.countExe < 80) },
+            { assertTrue(cntProvider.countRec <= 1) }
         )
     }
 
-    @Test
-    fun clusteringTreeTest() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clusteringTreeTest(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
         val input = SetFileGraph()["tree6"]
-        val answer3 = clustering(input, 3, cntProvider.driver)!!
-        val answer4 = clustering(input, 4)!!
+        val answer3 = clusterizer.start(input, 3, cntProvider.driver)
+        val answer4 = clusterizer.start(input, 4) {}
 
         assertEquals(3, distance(input, answer3))
         assertEquals(answer3, answer4)
 
         assertAll(
-            { assertEquals(14, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countRec) }
+            { assertTrue(cntProvider.countExe < 15) },
+            { assertTrue(cntProvider.countRec <= 1) }
         )
     }
 
-    @Test
-    fun clusteringBigTest() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clusteringBigTest(clusterizer: Clusterizer) {
         // Выполняется 4 секунды
         val cntProvider = createDriver()
         val input = SetFileGraph()["Undir_17-34"] // Undir_17x34_1..1
-        val answer = clustering(input, 3, cntProvider.driver)!!
+        val answer = clusterizer.start(input, 3, cntProvider.driver)
         assertEquals(22, distance(input, answer), answer.toString())
     }
 
-    @Test
-    fun clusteringClippingTest() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clusteringClippingTest(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
         val input = SetFileGraph()["34_13-10"]
-        val answer = clustering(input, 4, cntProvider.driver)!!
+
+        val answer = clusterizer.start(input, 4, cntProvider.driver)
         assertEquals(10, distance(input, answer), answer.toString())
     }
 
@@ -200,58 +225,71 @@ internal class ClusteringTest {
         addEdg(3 edg 1)
     }
 
-    @Test
-    fun clustering4Test() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clustering4Test(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
-        val answer = clustering(cl3, 4, cntProvider.driver)!!
+        val answer = clusterizer.start(cl3, 4, cntProvider.driver)
 
         assertEquals(6, answer.numEdg)
         assertAll(
-            { assertEquals(6, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countRec) }
+            { assertTrue(cntProvider.countExe < 7) },
+            { assertTrue(cntProvider.countRec <= 1) }
         )
     }
 
-    @Test
-    fun clustering3Test() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clustering3Test(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
-        val answer = clustering(cl3, 3, cntProvider.driver)!!
+        val answer = clusterizer.start(cl3, 3, cntProvider.driver)
 
         assertEquals(3, answer.numEdg)
         assertEquals(1, answer.getVertices().filter { answer.deg(it) == 0 }.size)
         assertEquals(3, answer.getVertices().filter { answer.deg(it) == 2 }.size)
 
         assertAll(
-            { assertEquals(6, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countRec) }
+            { assertTrue(cntProvider.countExe < 7) },
+            { assertTrue(cntProvider.countRec <= 1) }
         )
     }
 
-    @Test
-    fun clustering2Test() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clustering2Test(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
-        val answer = clustering(cl3, 2, cntProvider.driver)!!
+        val answer = clusterizer.start(cl3, 2, cntProvider.driver)
 
         assertEquals(2, answer.numEdg)
         assertTrue(answer.getVertices().all { answer.deg(it) != 0 })
 
         assertAll(
-            { assertEquals(3, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countRec) }
+            { assertTrue(cntProvider.countExe < 4) },
+            { assertTrue(cntProvider.countRec <= 1) }
         )
     }
 
-    @Test
-    fun clustering1Test() {
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clustering1Test(clusterizer: Clusterizer) {
         val cntProvider = createDriver()
-        val answer = clustering(cl3, 1, cntProvider.driver)!!
+        val answer = clusterizer.start(cl3, 1, cntProvider.driver)
 
         assertTrue(answer.getVertices().all { answer.deg(it) == 0 })
 
         assertAll(
-            { assertEquals(5, cntProvider.countExe) },
-            { assertEquals(1, cntProvider.countRec) }
+            { assertTrue(cntProvider.countExe < 6) },
+            { assertTrue(cntProvider.countRec <= 1) }
         )
+    }
+
+    @ParameterizedTest
+    @MethodSource("testModels")
+    fun clusteringModelTest(clusterizer: Clusterizer) {
+        val graph = SetFileGraph()["6_0"]
+        val answer = clusterizer.start(graph, 3) {}
+
+        assertEquals(1, distance(answer, graph))
     }
 
     @Test

@@ -137,11 +137,20 @@ fun minScoreComparator(): Comparator<Subgraph> {
 }
 
 /**
+ * Модификации графа, запускаемые после фиксирования ребра.
+ * Могу увеличивать оценку узла.
+ */
+fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
+    val tmp = trimCluster(node, sizeCluster)
+    return fillByCriterion(tmp)
+}
+
+/**
  * Находит все кластеры размера [sizeCluster], образованные фиксированными рёбрами,
  * и удаляет из исходного графа все рёбра, смежные с составляющими кластер,
  * затем увеличивает оценку узла на число удалённых рёбер и удаляет рёбра из очереди необработанных.
  */
-fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
+fun trimCluster(node: Subgraph, sizeCluster: Int): Subgraph {
     val extraEdges = node.fixCmp.withIndex()
         .groupBy { it.value }
         .filter {
@@ -157,6 +166,7 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
             val curCmpVer = curCmp.map { it.index }.toSet()
             curCmpVer.flatMap { v ->
                 // Рёбра, исходящие от кластера
+                //todo вынести в toDetail()
                 (node.graph.com(v) - curCmpVer).map { if (it < v) it to v else v to it }
             }
         }.toSet()
@@ -165,6 +175,36 @@ fun onFixingEdgePostprocess(node: Subgraph, sizeCluster: Int): Subgraph {
         score += extraEdges.size
         fixDetails(extraEdges)
     }
+}
+
+/**
+ * Критерий кластерности графа.
+ * Найдём компоненты связности, порождённые множеством фиксированных рёбер, содержащие ровно 3 вершины
+ * (обозначим их 1, 2 и 3), соединённых двумя рёбрами, б.о.о. (1,2) и (2,3).
+ * Убедимся, что между крайними вершинами (1 и 3) существует ребро в [node].
+ * Если ребра нет, то добавляем его.
+ */
+fun fillByCriterion(node: Subgraph): Subgraph {
+    fun toDetail(v1: Int, v2: Int) =
+        if (v1 < v2) v1 to v2 else v2 to v1
+
+    val g = node.graph
+    g.getVertices().forEach { v ->
+
+        val com = g.com(v)
+        if (com.size == 2
+            && node.isFixed(toDetail(v, com[0]))
+            && node.isFixed(toDetail(v, com[1]))
+        ) {
+            val pair = toDetail(com[0], com[1])
+            if (!node.isFixed(pair) && !g.isCom(pair)) {
+                g.addEdg(pair.toEdge())
+                node.fixDetails(listOf(pair))
+                node.score++
+            }
+        }
+    }
+    return node
 }
 
 /**
@@ -178,7 +218,6 @@ fun isValid(node: Subgraph, maxSizeCluster: Int, record: Int): Boolean {
     if (node.score >= record || node.isTerminal())
         return false
     return maxSizeComponent(node.fixCmp) <= maxSizeCluster
-            && correctCriterionOfClustering(node.fixCmp, node.graph)
 }
 
 fun maxSizeComponent(components: IntArray) =
@@ -190,6 +229,7 @@ fun maxSizeComponent(components: IntArray) =
  * (обозначим их 1, 2 и 3), соединённых двумя рёбрами, б.о.о. (1,2) и (2,3).
  * Убедимся, что между крайними вершинами (1 и 3) существует ребро в [origGraph]
  */
+@Deprecated(message = "use fillByCriterion")
 fun correctCriterionOfClustering(components: IntArray, origGraph: Graph): Boolean {
     //todo фиксировать сразу последнюю
     return components.withIndex()
