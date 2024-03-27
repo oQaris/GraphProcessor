@@ -166,8 +166,7 @@ fun trimCluster(node: Subgraph, sizeCluster: Int): Subgraph {
             val curCmpVer = curCmp.map { it.index }.toSet()
             curCmpVer.flatMap { v ->
                 // Рёбра, исходящие от кластера
-                //todo вынести в toDetail()
-                (node.graph.com(v) - curCmpVer).map { if (it < v) it to v else v to it }
+                (node.graph.com(v) - curCmpVer).map { toDetail(it,v) }
             }
         }.toSet()
     return node.apply {
@@ -185,9 +184,6 @@ fun trimCluster(node: Subgraph, sizeCluster: Int): Subgraph {
  * Если ребра нет, то добавляем его.
  */
 fun fillByCriterion(node: Subgraph): Subgraph {
-    fun toDetail(v1: Int, v2: Int) =
-        if (v1 < v2) v1 to v2 else v2 to v1
-
     val g = node.graph
     g.getVertices().forEach { v ->
 
@@ -206,6 +202,9 @@ fun fillByCriterion(node: Subgraph): Subgraph {
     }
     return node
 }
+
+fun toDetail(v1: Int, v2: Int) =
+    if (v1 < v2) v1 to v2 else v2 to v1
 
 /**
  * проверяет, что:

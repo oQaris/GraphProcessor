@@ -7,7 +7,8 @@ import java.util.*
 /**
  * Реализация графа на базе матрицы смежности
  */
-class AdjacencyMatrixGraph(override val name: String) : Graph {
+class AdjacencyMatrixGraph : Graph {
+    override val name: String
     override var oriented: Boolean = false
         set(value) {
             // делаем неориентированным
@@ -31,6 +32,10 @@ class AdjacencyMatrixGraph(override val name: String) : Graph {
     override var sumWeights: Int = 0
 
     // ---------------------------------- Конструкторы --------------------------------- //
+
+    private constructor(name: String) {
+        this.name = name
+    }
 
     constructor(name: String, size: Int) : this(name) {
         requireG(size > 0) { ERR_SIZE_EM }

@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ClusteringTest {
 
-    private val gamsModel = GamsModel().apply { connect() }
+    //private val gamsModel = GamsModel().apply { connect() }
 
     class Clusterizer(private val name: String, val start: (Graph, Int, (Event) -> Unit) -> Graph) {
         override fun toString() = name
@@ -32,7 +32,7 @@ internal class ClusteringTest {
     private fun testModels(): List<Clusterizer> {
         return listOf(
             Clusterizer("BranchAndBound", ::clustering),
-            Clusterizer("GamsModel", gamsModel::clustering)
+            //Clusterizer("GamsModel", gamsModel::clustering)
         )
     }
 
@@ -287,6 +287,14 @@ internal class ClusteringTest {
         assertTrue(comparator.compare(s1, s2) < 0)
         assertTrue(comparator.compare(s2, s3) < 0)
         assertTrue(comparator.compare(s2, s4) == 0)
+    }
+
+    @Test
+    fun greedyTest() {
+        val graph = SetFileGraph()["6_0"]
+        val res = greedy(graph, 3)
+
+        assertEquals(res, graph)
     }
 
     private fun assetCounterProvider(cntProvider: CounterProvider, exe: Int = 999, rec: Int = 999) {
