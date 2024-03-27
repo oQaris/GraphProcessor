@@ -7,7 +7,13 @@ import com.jcraft.jsch.Session
 import graphs.Graph
 import graphs.impl.AdjacencyMatrixGraph
 import storage.SetFileGraph
+import java.io.File
 
+/**
+ * Для использования необходимо выполнить команду
+ * sudo apt-get install faketime
+ * А также иметь установленный GAMS на машине
+ */
 class GamsModel {
     private val template = """
         Set i "num vertex" / 1*%d /;
@@ -51,7 +57,12 @@ class GamsModel {
         Display "Result graph", x.l, "Objective value", clustering.objval;
     """.trimIndent()
 
-    private val workdir = "remote"
+    //    private val workdir = "remote"
+    private val workdir = "C:/Users/oQaris/Downloads/remote"
+
+    //    private val gamsPath = "/opt/gams/gams"
+    private val gamsPath = "/mnt/c/Users/oQaris/Downloads/gams/gams"
+
     private val tmpFile = "tmp.gms"
     private lateinit var session: Session
 
@@ -76,7 +87,7 @@ class GamsModel {
         driver: (Event) -> Unit = {}
     ): Graph {
 
-        exec(session, "rm $tmpFile")
+        exec("rm $tmpFile")
         driver.invoke(Event.ON)
 
         createTmpGamsInput(base, maxSizeCluster)
@@ -89,23 +100,35 @@ class GamsModel {
 
     private fun createTmpGamsInput(graph: Graph, k: Int) {
         val codeGms = String.format(template, graph.numVer, graphToTableGms(graph), k - 1)
-        exec(session, "echo \'$codeGms\' > $tmpFile")
+        if (this::session.isInitialized) {
+            exec("echo \'$codeGms\' > $tmpFile")
+        } else {
+            //todo сделать универсально
+            File(workdir, tmpFile).writeText(codeGms)
+        }
     }
 
     private fun startGamsCalculating(): String {
         val reportFile = tmpFile.dropLast(3) + "lst"
-        exec(session, "rm $reportFile")
+        exec("rm $reportFile")
 
-        exec(session, "faketime '2021-01-01 00:00:00' /opt/gams/gams $tmpFile")
+        exec("faketime '2021-01-01 00:00:00' $gamsPath $tmpFile")
 
-        return exec(session, "cat $reportFile")
+        return exec("cat $reportFile")
     }
 
-    private fun exec(session: Session, command: String): String {
-        val channel: ChannelExec = session.openChannel("exec") as ChannelExec
-        channel.setCommand("cd $workdir && $command")
-        channel.connect()
-        return channel.inputStream.bufferedReader().lineSequence().joinToString("\n")
+    private fun exec(command: String): String {
+        val resultStream = if (this::session.isInitialized) {
+            val channel: ChannelExec = session.openChannel("exec") as ChannelExec
+            channel.setCommand("cd $workdir && $command")
+            channel.connect()
+            channel.inputStream
+        } else {
+            val process = Runtime.getRuntime().exec("wsl $command", null, File(workdir))
+            process.inputStream
+        }
+        return resultStream.bufferedReader().lineSequence().joinToString("\n")
+        //.also { println(it) }
     }
 
     fun graphToTableGms(graph: Graph): String {
@@ -157,8 +180,15 @@ class GamsModel {
         return graph
     }
 
+    fun printReportFile() {
+        val reportFile = tmpFile.dropLast(3) + "lst"
+        println(exec("cat $reportFile"))
+    }
+
     fun disconnect() {
-        session.disconnect()
+        if (this::session.isInitialized) {
+            session.disconnect()
+        }
     }
 }
 
@@ -170,7 +200,7 @@ fun main() {
 
     println("GamsModel")
     try {
-        model.connect()
+        //model.connect()
         println(model.clustering(graph, s))
     } finally {
         model.disconnect()

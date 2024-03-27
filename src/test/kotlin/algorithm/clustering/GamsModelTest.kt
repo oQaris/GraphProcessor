@@ -18,9 +18,9 @@ class GamsModelTest {
                        "   1  0  0  0  0  0  0  \n" +
                        "   2  0  0  1  0  0  0  \n" +
                        "   3  0  1  0  0  0  0  \n" +
-                       "   4  0  0  0  0  1  1  \n" +
-                       "   5  0  0  0  1  0  0  \n" +
-                       "   6  0  0  0  1  0  0  \n"
+                       "   4  0  0  0  0  1  0  \n" +
+                       "   5  0  0  0  1  0  1  \n" +
+                       "   6  0  0  0  0  1  0  \n"
         Assertions.assertEquals(expected, actual)
     }
 

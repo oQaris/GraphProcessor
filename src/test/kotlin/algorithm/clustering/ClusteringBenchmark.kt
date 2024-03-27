@@ -4,13 +4,13 @@ import algorithm.BenchmarkTestBase
 import algorithm.distance
 import console.algorithm.clustering.GamsModel
 import console.algorithm.clustering.clustering
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
 import storage.SetFileGraph
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlin.test.assertEquals
 
@@ -27,25 +27,25 @@ class ClusteringBenchmark : BenchmarkTestBase() {
         val expCount = 1
 
         val model = GamsModel()
-        model.connect()
+        //model.connect()
 
         warmup()
         val pToVer = mapOf(
             1 / 5f to 999,
             //1 / 2f to 15,
-            //4 / 5f to 12
+            //1f to 99
         )
         pToVer.forEach { (p, maxVer) ->
-            val bench = SfgBenchmark("test_result/testModel.txt", p.toString(), false)
-            for (ver in 23..maxVer) {
+            val bench = SfgBenchmark("test_result/gurobi09.csv", p.toString(), true)
+            for (ver in 100..maxVer) {
                 val gen = Generator(
                     numVer = ver,
                     p = p
                 )
-                bench.printMeasure(expCount, ver.toString(), gen) { graph, driver ->
-                    val custom = clustering(graph, maxSizeCluster, driver)
-                    //val gams = model.clustering(graph, maxSizeCluster, driver)
-                    //Assertions.assertEquals(distance(graph, custom), distance(graph, gams), graph.toString())
+                bench.printMeasure(expCount, ver.toString(), gen, timeUnit = TimeUnit.SECONDS) { graph, driver ->
+//                    val custom = clustering(graph, maxSizeCluster, driver)
+                    val gams = model.clustering(graph, maxSizeCluster, driver)
+//                    Assertions.assertEquals(distance(graph, custom), distance(graph, gams), graph.toString())
                 }
             }
         }
