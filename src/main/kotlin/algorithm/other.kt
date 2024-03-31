@@ -1,6 +1,7 @@
 package algorithm
 
 import com.github.shiguruikai.combinatoricskt.combinations
+import graphs.Edge
 import graphs.Graph
 
 fun redo(g: Graph, lambda: (u: Int, v: Int, w: Int) -> Int): Int {
@@ -22,6 +23,13 @@ fun isClustering(g: Graph): Boolean {
                 g.isCom(it[0], it[1])
             }
         }
+}
+
+fun isFull(g: Graph): Boolean {
+    val vertexes = g.getVertices()
+    return vertexes.combinations(2).all {
+        g.isCom(it[0], it[1])
+    }
 }
 
 fun isClusteringMaxSize(g: Graph, maxSizeCluster: Int): Boolean {
@@ -54,8 +62,12 @@ private fun dfs(g: Graph, v: Int, component: Int, components: IntArray) {
     }
 }
 
-fun distance(g1: Graph, g2: Graph): Int {
+inline fun distance(g1: Graph, g2: Graph): Int {
+    return diffEdges(g1, g2).size
+}
+
+inline fun diffEdges(g1: Graph, g2: Graph): Set<Edge> {
     val e1 = g1.getEdges()
     val e2 = g2.getEdges()
-    return e1.union(e2).minus(e1.intersect(e2.toSet())).size
+    return e1.union(e2).minus(e1.intersect(e2.toSet()))
 }

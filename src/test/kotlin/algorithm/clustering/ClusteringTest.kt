@@ -42,7 +42,7 @@ internal class ClusteringTest {
         val g2 = Subgraph(AdjacencyMatrixGraph("2", 1), 1, mutableListOf())
         val g3 = Subgraph(AdjacencyMatrixGraph("3", 1), 0, mutableListOf())
 
-        val leaves = PriorityQueue(ascLastComparator)
+        val leaves = PriorityQueue(minScoreComparator())
         leaves.add(g1)
         leaves.add(g3)
         leaves.add(g2)
@@ -225,7 +225,7 @@ internal class ClusteringTest {
         val cntProvider = createDriver()
         val answer = clusterizer.start(cl3, 4, cntProvider.driver)
 
-        assertEquals(6, answer.numEdg)
+        assertEquals(6, answer.numEdg) { answer.toString() }
         assetCounterProvider(cntProvider)
     }
 
@@ -291,10 +291,24 @@ internal class ClusteringTest {
 
     @Test
     fun greedyTest() {
-        val graph = SetFileGraph()["6_0"]
-        val res = greedy(graph, 3)
+        val graph1 = SetFileGraph()["6_0"]
+        val res1 = greedy(graph1, 3)
+        assertTrue { !res1.isCom(3, 4) || !res1.isCom(4, 5) }
 
-        assertEquals(res, graph)
+        val graph2 = SetFileGraph()["cl"]
+        val res2 = greedy(graph2, 4)
+        assertEquals(graph2.apply {
+            remEdg(0, 4)
+            remEdg(0, 5)
+            remEdg(1, 4)
+            remEdg(2, 7)
+        }, res2)
+
+        val graph3 = SetFileGraph()["mega"]
+        val res3 = greedy(graph3, 3)
+        assertEquals(6, res3.numEdg, res3.toString())
+        val res4 = greedy(graph3, 4)
+        assertEquals(7, res4.numEdg, res4.toString())
     }
 
     private fun assetCounterProvider(cntProvider: CounterProvider, exe: Int = 999, rec: Int = 999) {
