@@ -23,28 +23,33 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
     @Test
     fun `Number of vertices`() {
-        val maxSizeCluster = 3
+        val s = 4
         val expCount = 1
+        val expName = "test_data/testApprox4"
 
         val model = GamsModel()
         //model.connect()
 
-        warmup()
+        //warmup()
         val pToVer = mapOf(
-            1 / 5f to 999,
+            1 / 5f to 22,
             //1 / 2f to 15,
             //1f to 99
         )
         pToVer.forEach { (p, maxVer) ->
-            val bench = SfgBenchmark("test_result/gurobi09.csv", p.toString(), true)
-            for (ver in 100..maxVer) {
+            val bench = SfgBenchmark("$expName.txt", p.toString(), false)
+            for (ver in s..maxVer) {
                 val gen = Generator(
                     numVer = ver,
                     p = p
                 )
-                bench.printMeasure(expCount, ver.toString(), gen, timeUnit = TimeUnit.SECONDS) { graph, driver ->
-//                    val custom = clustering(graph, maxSizeCluster, driver)
-                    val gams = model.clustering(graph, maxSizeCluster, driver)
+                bench.printMeasure(
+                    expCount, ver.toString(), gen,
+                    //output = PrintWriter(FileOutputStream("$expName.csv")),
+                    timeUnit = TimeUnit.SECONDS
+                ) { graph, driver ->
+                    val custom = clustering(graph, s, driver)
+//                    val gams = model.clustering(graph, s, driver)
 //                    Assertions.assertEquals(distance(graph, custom), distance(graph, gams), graph.toString())
                 }
             }
@@ -54,15 +59,15 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
     @Test
     fun `Number of edges`() {
-        val maxSizeCluster = 3
+        val maxSizeCluster = 4
         val numVer = 15
-        val expCount = 1
+        val expCount = 4
         val maxEdge = Generator.maxNumEdge(numVer)
         println(maxEdge)
 
         warmup()
-        val bench = SfgBenchmark("test_result/testE.txt", numVer.toString(), true)
-        (0..maxEdge).forEach { numEdg ->
+        val bench = SfgBenchmark("test_data/testE.txt", numVer.toString(), true)
+        (41..maxEdge).forEach { numEdg ->
             val gen = Generator(
                 numVer = numVer,
                 numEdg = numEdg
@@ -82,7 +87,7 @@ class ClusteringBenchmark : BenchmarkTestBase() {
         )
         warmup()
 
-        val bench = SfgBenchmark("test_result/testS.txt", gen.toString(), true)
+        val bench = SfgBenchmark("test_data/testS.txt", gen.toString(), true)
         for (s in 1..gen.numVer) {
             val curExpCount = /*when (s) {
                 7 -> 0.75
@@ -143,7 +148,7 @@ class ClusteringBenchmark : BenchmarkTestBase() {
         val expCount = 4
 
         warmup()
-        val bench = SfgBenchmark("test_result/testCmp.txt", "0.5", true)
+        val bench = SfgBenchmark("test_data/testCmp.txt", "0.5", true)
         for (ver in maxSizeCluster..20) {
             val gen = Generator(
                 numVer = ver,

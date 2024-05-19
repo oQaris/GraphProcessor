@@ -19,12 +19,12 @@ class GamsModel {
         Set i "num vertex" / 1*%d /;
         Alias (i, j, k)
 
-        Table y(i,j) "input graph clustering"
+        Table a(i,j) "input graph clustering"
         %s ;
 
         Binary Variable x(i,j) "result";
-        Binary Variable z1(i,j) "auxiliary variable x-y";
-        Binary Variable z2(i,j) "auxiliary variable y-x";
+        Binary Variable y1(i,j) "auxiliary variable x-a";
+        Binary Variable y2(i,j) "auxiliary variable a-x";
         Variable distance "objective";
 
         Equations
@@ -32,8 +32,8 @@ class GamsModel {
            sim(i,j) "symmetric matrix"
            diag(i,i) "diagonal matrix"
            size(i) "cluster size"
-           con1(i,j) "x-y"
-           con2(i,j) "y-x"
+           con1(i,j) "x-a"
+           con2(i,j) "a-x"
            obj "total distance";
 
         allow(i,j,k)${'$'}(ord(i)<>ord(j) and ord(j)<>ord(k) and ord(k)<>ord(i)).. x(i,k) + x(i,j) =l= x(j,k) + 1;
@@ -43,11 +43,11 @@ class GamsModel {
 
         size(i).. sum(j, x(i,j)) =l= %d;
         
-        con1(i,j).. z1(i,j) =g= x(i,j) - y(i,j);
-        con2(i,j).. z2(i,j) =g= y(i,j) - x(i,j);
+        con1(i,j).. y1(i,j) =g= x(i,j) - a(i,j);
+        con2(i,j).. y2(i,j) =g= a(i,j) - x(i,j);
 
-        * z1(i,j) + z2(i,j) = abs(x(i,j) - y(i,j))
-        obj.. distance =e= sum((i,j), z1(i,j) + z2(i,j));
+        * y1(i,j) + y2(i,j) = abs(x(i,j) - a(i,j))
+        obj.. distance =e= sum((i,j), y1(i,j) + y2(i,j));
 
         Option LP = Gurobi;
         Model clustering / all /;
@@ -58,7 +58,7 @@ class GamsModel {
     """.trimIndent()
 
     //    private val workdir = "remote"
-    private val workdir = "C:/Users/oQaris/Downloads/remote"
+    private val workdir = "C:/Users/oQaris/Desktop/Learning/PhD/exp/run"
 
     //    private val gamsPath = "/opt/gams/gams"
     private val gamsPath = "/mnt/c/Users/oQaris/Downloads/gams/gams"

@@ -11,8 +11,6 @@ import graphs.toEdge
 import java.util.*
 
 var globalID = 0L
-val ascLastComparator: Comparator<Subgraph> =
-    compareBy<Subgraph> { it.score }.reversed().thenBy { it.id }.reversed()
 
 class Subgraph(
     val graph: Graph,
@@ -86,11 +84,14 @@ fun clustering(
     val leaves = PriorityQueue(minScoreComparator())
     var rec = Int.MAX_VALUE
     var answer: Graph? = null
+    var earlyExit = false
 
     fun updateTree(newNode: Subgraph, proceedPair: Pair<Int, Int>) {
         //todo Если последнее увеличение оценки происходило не более чем на 1, то на этом этапе алгоритм можно завершить,
         // поскольку все последующие итерации приведут лишь к увеличению оценок подмножеств минимум на 1.
         if (newNode.score < rec && isClusteringMaxSize(newNode.graph, maxSizeCluster)) {
+            if (rec - newNode.score == 1)
+                earlyExit = true
             driver.invoke(Event.REC)
             rec = newNode.score
             answer = newNode.graph
@@ -126,6 +127,10 @@ fun clustering(
             updateTree(changed, pair)
             // Если фиксируется ребро
             updateTree(onFixingEdgePostprocess(curElem, maxSizeCluster), pair)
+        }
+        if (earlyExit) {
+            driver.invoke(Event.OFF)
+            return answer!!
         }
     }
     driver.invoke(Event.OFF)
@@ -166,7 +171,7 @@ fun trimCluster(node: Subgraph, sizeCluster: Int): Subgraph {
             val curCmpVer = curCmp.map { it.index }.toSet()
             curCmpVer.flatMap { v ->
                 // Рёбра, исходящие от кластера
-                (node.graph.com(v) - curCmpVer).map { toDetail(it,v) }
+                (node.graph.com(v) - curCmpVer).map { toDetail(it, v) }
             }
         }.toSet()
     return node.apply {
@@ -211,7 +216,6 @@ fun toDetail(v1: Int, v2: Int) =
  * 1) узел содержит необработанные рёбра;
  * 2) расстояние до исходного графа меньше текущего рекорда;
  * 3) размер максимальной компоненты связности, образованной фиксированными рёбрами не больше maxSizeCluster;
- * 4) выполняется критерий кластерности.
  */
 fun isValid(node: Subgraph, maxSizeCluster: Int, record: Int): Boolean {
     if (node.score >= record || node.isTerminal())

@@ -194,9 +194,9 @@ internal class ClusteringTest {
     @ParameterizedTest
     @MethodSource("testModels")
     fun clusteringBigTest(clusterizer: Clusterizer) {
-        // Выполняется 4 секунды
+        // Выполняется 30 секунд
         val cntProvider = createDriver()
-        val input = SetFileGraph()["Undir_17-34"] // Undir_17x34_1..1
+        val input = SetFileGraph()["Undir_17-34"]
         val answer = clusterizer.start(input, 3, cntProvider.driver)
         assertEquals(22, distance(input, answer), answer.toString())
     }
@@ -309,6 +309,14 @@ internal class ClusteringTest {
         assertEquals(6, res3.numEdg, res3.toString())
         val res4 = greedy(graph3, 4)
         assertEquals(7, res4.numEdg, res4.toString())
+    }
+
+    @Test
+    fun greedyTgraphTest() {
+        for (s in 1..4) {
+            val res = greedy(cl3, s)
+            assertTrue { isClustering(res) }
+        }
     }
 
     private fun assetCounterProvider(cntProvider: CounterProvider, exe: Int = 999, rec: Int = 999) {
