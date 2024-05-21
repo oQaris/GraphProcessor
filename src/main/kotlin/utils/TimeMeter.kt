@@ -37,6 +37,42 @@ fun List<Long>.max() = this.maxOrNull() ?: 0L
 /** Минимальное из временных меток */
 fun List<Long>.min() = this.minOrNull() ?: 0L
 
+/** Среднее арифметическое временных меток */
+fun List<Double>.mean(): Double {
+    if (this.isEmpty()) return 0.0
+    return this.sum() / this.size
+}
+
+/** Медиана временных меток */
+fun List<Double>.median(): Double {
+    if (this.isEmpty()) return 0.0
+    val sorted = this.sorted()
+    val n = this.size
+    return if (n % 2 == 1) sorted[(n - 1) / 2]
+    else (sorted[n / 2 - 1] + sorted[n / 2]) / 2
+}
+
+/** Моды временных меток
+ * @param dif Допустимый разброс значения для включения в одно множество */
+fun List<Double>.modes(dif: Double = 0.0): List<Double> {
+    //TODO учитывать dif
+    return this.groupingBy { it }.eachCount().entries
+        .maxsBy { it.value }.map { it.key }
+}
+
+/** Одна из мод временных меток
+ * @param dif Допустимый разброс значения для включения в одно множество */
+fun List<Double>.mode(dif: Double = 0.0): Double {
+    return this.modes(dif).firstOrNull() ?: 0.0
+}
+
+/** Максимальное из временных меток*/
+fun List<Double>.max() = this.maxOrNull() ?: 0L
+
+/** Минимальное из временных меток */
+fun List<Double>.min() = this.minOrNull() ?: 0L
+
+
 /** Выводит на консоль схематичный график соотношений временных меток
  * @param segmentLen максимальная длина одной строки при выводе (0 - оригинальное соотношение)
  * @param compression сжатие высоты графика (0 - без сжатия, 1 - сжатие до 1 строки)*/

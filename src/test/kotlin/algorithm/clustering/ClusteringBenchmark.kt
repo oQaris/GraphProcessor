@@ -4,13 +4,13 @@ import algorithm.BenchmarkTestBase
 import algorithm.distance
 import console.algorithm.clustering.GamsModel
 import console.algorithm.clustering.clustering
+import console.algorithm.clustering.greedy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import storage.Generator
 import storage.SetFileGraph
 import java.io.File
-import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import kotlin.test.assertEquals
 
@@ -23,34 +23,29 @@ class ClusteringBenchmark : BenchmarkTestBase() {
 
     @Test
     fun `Number of vertices`() {
-        val s = 4
-        val expCount = 1
-        val expName = "test_data/testApprox4"
+        val s = 3
+        val expCount = 100
+        val expName = "test_data/greedyV"
 
         val model = GamsModel()
-        //model.connect()
 
-        //warmup()
+        warmup()
         val pToVer = mapOf(
-            1 / 5f to 22,
+            1 / 3f to 100,
             //1 / 2f to 15,
             //1f to 99
         )
         pToVer.forEach { (p, maxVer) ->
-            val bench = SfgBenchmark("$expName.txt", p.toString(), false)
+            val bench = SfgBenchmark("$expName.txt", p.toString(), true)
             for (ver in s..maxVer) {
                 val gen = Generator(
                     numVer = ver,
                     p = p
                 )
-                bench.printMeasure(
-                    expCount, ver.toString(), gen,
-                    //output = PrintWriter(FileOutputStream("$expName.csv")),
-                    timeUnit = TimeUnit.SECONDS
-                ) { graph, driver ->
-                    val custom = clustering(graph, s, driver)
-//                    val gams = model.clustering(graph, s, driver)
-//                    Assertions.assertEquals(distance(graph, custom), distance(graph, gams), graph.toString())
+                bench.printCustom(expCount, ver.toString(), gen) { graph ->
+                    val exact = model.clustering(graph, s)
+                    val approx = greedy(graph, s)
+                    distance(graph, approx).toDouble() / distance(graph, exact).toDouble()
                 }
             }
         }
@@ -74,6 +69,30 @@ class ClusteringBenchmark : BenchmarkTestBase() {
             )
             bench.printMeasure(expCount, numEdg.toString(), gen) { graph, driver ->
                 clustering(graph, maxSizeCluster, driver)
+            }
+        }
+    }
+
+    @Test
+    fun `Greedy approx`() {
+        val s = 3
+        val numVer = 15
+        val expCount = 100
+        val maxEdge = Generator.maxNumEdge(numVer)
+        println(maxEdge)
+
+        warmup()
+        val model = GamsModel()
+        val bench = SfgBenchmark("test_data/greedyE.txt", numVer.toString(), true)
+        (1..maxEdge).forEach { numEdg ->
+            val gen = Generator(
+                numVer = numVer,
+                numEdg = numEdg
+            )
+            bench.printCustom(expCount, numEdg.toString(), gen) { graph ->
+                val exact = model.clustering(graph, s)
+                val approx = greedy(graph, s)
+                distance(graph, approx).toDouble() / distance(graph, exact).toDouble()
             }
         }
     }

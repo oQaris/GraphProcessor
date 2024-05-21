@@ -60,6 +60,33 @@ open class BenchmarkTestBase {
                         "${deeps.mean()};${deeps.mode()};${deeps.median()};${deeps.max()};${deeps.min()};"
             )
         }
+
+        fun printCustom(
+            expCount: Int,
+            rowId: String,
+            generator: Generator,
+            timedFunc: (Graph) -> Double
+        ) {
+            if (isFirstCall) {
+                println(
+                    "$expId;ExpCount;Mean;Mode;Median;Max;Min;"
+                )
+                isFirstCall = false
+            }
+            generator.except = sfg.values
+            val graphGetter = sfgGetter(rowId, renewData, generator, sfg)
+
+            val values = mutableListOf<Double>()
+            repeat(expCount) { numEx ->
+                val graph = graphGetter(numEx)
+                values.add(timedFunc(graph))
+            }
+
+            println(
+                "$rowId;$expCount;" +
+                        "${values.mean()};${values.mode()};${values.median()};${values.max()};${values.min()};"
+            )
+        }
     }
 
     protected fun timedEvents(
